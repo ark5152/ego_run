@@ -214,7 +214,7 @@ select.inp { appearance: none; background-image: none; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: calc(env(safe-area-inset-top) + 10px) 20px 8px; background: var(--ground);
 }
-.brand-logo { height: 30px; width: auto; display: block; }
+.brand-logo { height: 21px; width: auto; display: block; }
 .me-chip {
   display: inline-flex; align-items: center; gap: 8px; max-width: 50%;
   height: 40px; padding: 0 12px 0 4px; border: 1px solid var(--line); border-radius: 20px; background: #fff;
@@ -232,4 +232,4 @@ select.inp { appearance: none; background-image: none; }
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%); color: #fff;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center;
 }
-.hero p { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .3px; font-style: italic; line-height: 1.35; }
+.hero p { margin: 0; font-size: 22px; font-weight: 400; letter-spacing: .3px; font-style: italic; line-height: 1.35; }
