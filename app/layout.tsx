@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "EGO 러닝크루 출석·일정·거리 인증·대회 기록",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "EGO", statusBarStyle: "default" },
-  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
+  icons: { icon: "/favicon.png", apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
