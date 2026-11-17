@@ -15,6 +15,7 @@ export default function MembersAdminPage() {
   const [open, setOpen] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [resetInfo, setResetInfo] = useState<{ id: string; name: string; code: string } | null>(null);
 
   const { data, error, reload } = useLoad(() => api.listMembers(), []);
 
@@ -38,7 +39,7 @@ export default function MembersAdminPage() {
     <Screen title="회원 관리" back tab="/more">
       <section className="card stack">
         <h2 className="h2">명단에 추가</h2>
-        <p className="sm" style={{ margin: 0 }}>추가한 이름은 가입 화면에 나타나요. 본인이 이름을 고르고 요청하면 승인해 주세요.</p>
+        <p className="sm" style={{ margin: 0 }}>본인이 앱의 ‘처음 가입’에서 이 이름과 숫자 4자리 비밀번호로 가입하면, 승인 관리에서 승인해 주세요.</p>
         <form className="stack" onSubmit={(e) => { e.preventDefault(); add(); }}>
           <input className="inp" aria-label="이름" placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
           <Tabs value={gender} onChange={setGender} options={[{ value: "M", label: "남자" }, { value: "F", label: "여자" }]} />
@@ -54,6 +55,11 @@ export default function MembersAdminPage() {
             <MemberRow key={m.id} m={m} isMe={m.id === me.id} open={open === m.id}
               onToggle={() => setOpen(open === m.id ? null : m.id)}
               onPatch={(p) => run(() => api.updateMember(m.id, p))}
+              resetCode={resetInfo?.id === m.id ? resetInfo.code : null}
+              onReset={() => {
+                if (!confirm(`${m.name} 님의 비밀번호를 초기화할까요? 지금 비밀번호로는 더 이상 로그인할 수 없고, 잠금도 풀려요.`)) return;
+                run(async () => { const code = await api.adminResetSecret(m.id); setResetInfo({ id: m.id, name: m.name, code }); });
+              }}
               onDelete={() => { if (confirm(`${m.name} 님을 명단에서 삭제할까요? 출석·거리·대회 기록도 함께 지워져요.`)) run(() => api.deleteMember(m.id)); }} />
           ))}
         </section>
@@ -62,8 +68,8 @@ export default function MembersAdminPage() {
   );
 }
 
-function MemberRow({ m, isMe, open, onToggle, onPatch, onDelete }: {
-  m: Member; isMe: boolean; open: boolean; onToggle: () => void;
+function MemberRow({ m, isMe, open, onToggle, onPatch, onDelete, onReset, resetCode }: {
+  m: Member; isMe: boolean; open: boolean; onToggle: () => void; onReset: () => void; resetCode: string | null;
   onPatch: (p: Partial<Pick<Member, "gender" | "role" | "isLeader">>) => void; onDelete: () => void;
 }) {
   return (
@@ -82,7 +88,15 @@ function MemberRow({ m, isMe, open, onToggle, onPatch, onDelete }: {
           <button className="btn small ghost" disabled={isMe} onClick={() => onPatch(isStaff(m) ? { role: "member", isLeader: false } : { role: "admin", isLeader: true })}>
             {isStaff(m) ? "운영진 해제" : "운영진 지정"}
           </button>
+          {!isStaff(m) && m.userId && <span className="sm" style={{ textAlign: "center" }}>운영진으로 지정하면 다음 로그인 때 영문+숫자 8자리 이상 비밀번호로 바꿔야 운영진 기능이 열려요</span>}
           {isMe && <span className="sm" style={{ textAlign: "center" }}>본인의 운영진 권한은 다른 운영진이 바꿀 수 있어요</span>}
+          {m.userId && !isMe && <button className="btn small ghost" onClick={onReset}>비밀번호 초기화 · 잠금 해제</button>}
+          {resetCode && (
+            <div className="confirm" role="status">
+              <span>재설정 코드 <b style={{ fontSize: 20, letterSpacing: 3 }}>{resetCode}</b> (24시간 유효)</span>
+              <span className="sm">{m.name} 님에게 직접 전달해 주세요. 앱의 ‘재설정’에서 이 코드로 새 비밀번호를 정해요. 이 화면을 벗어나면 다시 볼 수 없어요.</span>
+            </div>
+          )}
           {!isMe && <button className="btn small danger" onClick={onDelete}>명단에서 삭제</button>}
         </div>
       )}

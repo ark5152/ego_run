@@ -72,16 +72,27 @@ export interface Settings {
 
 export interface Session {
   userId: string;
-  email: string | null;
 }
+
+/** 비밀번호 종류: 크루원은 숫자 4자리(pin), 운영진은 영문+숫자 8자리 이상(password) */
+export type SecretKind = "pin" | "password";
 
 export interface Api {
   mode: "supabase" | "demo";
 
   // auth
   getSession(): Promise<Session | null>;
-  sendLoginCode(email: string): Promise<void>;
-  verifyLoginCode(email: string, code: string): Promise<void>;
+  /** 이름 + 비밀번호 로그인 */
+  login(name: string, secret: string): Promise<void>;
+  /** 처음 가입: 명단의 이름 + 숫자 4자리 → 승인 대기 */
+  register(name: string, pin: string): Promise<void>;
+  /** 운영진에게 받은 재설정 코드로 새 비밀번호 */
+  resetWithCode(name: string, code: string, secret: string): Promise<void>;
+  /** 로그인한 본인의 비밀번호 변경 */
+  changeSecret(current: string, next: string): Promise<void>;
+  mySecretKind(): Promise<SecretKind | null>;
+  /** 운영진: 비밀번호 초기화 → 6자리 재설정 코드 */
+  adminResetSecret(memberId: string): Promise<string>;
   signOut(): Promise<void>;
 
   // members
@@ -90,7 +101,6 @@ export interface Api {
   addMember(input: { name: string; gender: Gender }): Promise<void>;
   updateMember(id: string, patch: Partial<Pick<Member, "name" | "gender" | "role" | "isLeader">>): Promise<void>;
   deleteMember(id: string): Promise<void>;
-  requestJoin(memberId: string): Promise<void>;
   cancelJoin(): Promise<void>;
   reviewJoin(memberId: string, approve: boolean): Promise<void>;
 
@@ -117,4 +127,19 @@ export interface Api {
   listRaceRecords(q: { year?: number; memberId?: string }): Promise<RaceRecord[]>;
   addRaceRecord(input: Omit<RaceRecord, "id" | "memberId">): Promise<void>;
   deleteRaceRecord(id: string): Promise<void>;
+}
+
+/** 비밀번호 규칙(서버의 secret_error 와 같은 규칙 — 화면에서 미리 안내용) */
+export function secretError(secret: string, kind: SecretKind): string | null {
+  if (kind === "pin") {
+    if (!/^\d{4}$/.test(secret)) return "비밀번호는 숫자 4자리로 정해 주세요";
+    if (/^(\d)\1{3}$/.test(secret) || "0123456789".includes(secret) || "9876543210".includes(secret)) {
+      return "1111, 1234처럼 쉬운 번호는 쓸 수 없어요";
+    }
+    return null;
+  }
+  if (secret.length < 8 || !/[A-Za-z]/.test(secret) || !/\d/.test(secret)) {
+    return "운영진 비밀번호는 영문과 숫자를 섞어 8자리 이상으로 정해 주세요";
+  }
+  return null;
 }

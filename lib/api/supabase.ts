@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type {
-  Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, Settings,
+  Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, SecretKind, Settings,
 } from "../types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -50,6 +50,14 @@ export function createSupabaseApi(url: string, key: string): Api {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
 
+  /** 이름+비밀번호 확인은 서버 함수(pin-auth)가 하고, 성공하면 세션을 돌려받아 로그인 */
+  const pinAuth = async (body: Record<string, string>) => {
+    const { data, error } = await sb.functions.invoke("pin-auth", { body });
+    if (error) throw new Error("서버에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요.");
+    if (!data?.ok) throw new Error(data?.error ?? "요청에 실패했어요.");
+    if (data.session) check(await sb.auth.setSession(data.session));
+  };
+
   const uid = async () => (await sb.auth.getSession()).data.session?.user.id ?? null;
 
   return {
@@ -57,18 +65,18 @@ export function createSupabaseApi(url: string, key: string): Api {
 
     async getSession() {
       const s = (await sb.auth.getSession()).data.session;
-      return s ? { userId: s.user.id, email: s.user.email ?? null } : null;
+      return s ? { userId: s.user.id } : null;
     },
-    async sendLoginCode(email) {
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
-      });
-      if (error) throw new Error(friendly(error.message));
+    async login(name, secret) { await pinAuth({ action: "login", name, secret }); },
+    async register(name, pin) { await pinAuth({ action: "register", name, secret: pin }); },
+    async resetWithCode(name, code, secret) { await pinAuth({ action: "reset", name, code, secret }); },
+    async changeSecret(current, next) { await pinAuth({ action: "change", current, secret: next }); },
+    async mySecretKind() {
+      const r = check(await sb.rpc("my_secret_kind"));
+      return (r as unknown as SecretKind | null) ?? null;
     },
-    async verifyLoginCode(email, code) {
-      const { error } = await sb.auth.verifyOtp({ email, token: code, type: "email" });
-      if (error) throw new Error(friendly(error.message));
+    async adminResetSecret(memberId) {
+      return check(await sb.rpc("admin_reset_secret", { p_member_id: memberId })) as unknown as string;
     },
     async signOut() {
       await sb.auth.signOut();
@@ -96,9 +104,6 @@ export function createSupabaseApi(url: string, key: string): Api {
     },
     async deleteMember(id) {
       check(await sb.from("members").delete().eq("id", id));
-    },
-    async requestJoin(memberId) {
-      check(await sb.rpc("request_join", { p_member_id: memberId }));
     },
     async cancelJoin() {
       check(await sb.rpc("cancel_join"));

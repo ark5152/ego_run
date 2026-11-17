@@ -2,12 +2,23 @@ import type {
   Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, Settings,
 } from "../types";
 import { dateStr } from "../format";
-import { SOCIAL_PER_MONTH } from "../types";
+import { SOCIAL_PER_MONTH, secretError, type SecretKind } from "../types";
 
 /**
  * 데모 모드: Supabase 설정이 없을 때 쓰는 예시 데이터.
- * 브라우저 localStorage 에 저장되며, '김서준(크루장·관리자)'으로 로그인된 상태로 시작한다.
+ * 브라우저 localStorage 에 저장되며, '김서준(운영진)'으로 로그인된 상태로 시작한다.
+ * 데모 로그인: 김서준 / egorun2026, 다른 활동 회원 / 2580
+ * (데모는 모든 것이 브라우저 안에 있어 비밀번호를 숨기지 않음 — 실제 버전은 서버에서 확인)
  */
+
+interface DemoSecret {
+  secret: string | null;
+  kind: SecretKind;
+  failed: number;
+  lockCount: number;
+  lockedUntil: number | null; // ms, Infinity = 운영진 초기화 필요
+  resetCode: string | null;
+}
 
 interface Db {
   members: Member[];
@@ -16,7 +27,9 @@ interface Db {
   attendance: { eventId: string; memberId: string }[];
   distance: DistanceSubmission[];
   races: RaceRecord[];
-  signedIn: boolean;
+  signedIn?: boolean; // 예전 데모 데이터 호환
+  currentUid?: string | null;
+  secrets?: Record<string, DemoSecret>;
 }
 
 const KEY = "ego-demo-v1";
@@ -134,7 +147,7 @@ function seed(): Db {
     R("m-soyul", "10k", "00:52:40", "한강 10K", "2026-06-07"),
   ];
 
-  return { members, settings: { minAttendance: 1, distanceTarget: 30, instagram: "" }, events, attendance, distance, races, signedIn: true };
+  return { members, settings: { minAttendance: 1, distanceTarget: 30, instagram: "" }, events, attendance, distance, races, currentUid: DEMO_UID };
 }
 
 async function toDataUrl(file: File, max: number): Promise<string> {
@@ -156,12 +169,40 @@ export function createMockApi(): Api {
       if (raw) db = JSON.parse(raw) as Db;
     } catch { /* 저장소를 못 쓰면 메모리로만 */ }
     if (!db) db = seed();
+    // 예전 데모 데이터 → 비밀번호 로그인 방식으로 옮기기
+    if (!db.secrets) {
+      db.secrets = {};
+      for (const m of db.members) {
+        if (m.status === "unclaimed") continue;
+        if (!m.userId || m.userId === "someone-else") m.userId = m.userId === DEMO_UID ? DEMO_UID : `u-${m.id}`;
+        const admin = m.role === "admin";
+        db.secrets[m.id] = { secret: admin ? "egorun2026" : "2580", kind: admin ? "password" : "pin", failed: 0, lockCount: 0, lockedUntil: null, resetCode: null };
+      }
+      if (db.currentUid === undefined) db.currentUid = db.signedIn === false ? null : DEMO_UID;
+      delete db.signedIn;
+    }
     return db;
   };
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* ignore */ }
   };
-  const me = () => load().members.find((m) => m.userId === DEMO_UID) ?? null;
+  const me = () => { const d = load(); return d.currentUid ? d.members.find((m) => m.userId === d.currentUid) ?? null : null; };
+  const kindFor = (m: Member): SecretKind => (m.role === "admin" ? "password" : "pin");
+  const byName = (name: string) => load().members.find((m) => m.name === name.trim() && m.userId);
+  const lockedMsg = (s: DemoSecret) => s.lockedUntil === Infinity
+    ? "여러 번 틀려서 잠겼어요. 운영진에게 비밀번호 초기화를 요청해 주세요."
+    : s.lockedUntil && s.lockedUntil > Date.now() ? `잠겨 있어요. ${Math.max(1, Math.ceil((s.lockedUntil - Date.now()) / 60000))}분 뒤에 다시 시도해 주세요.` : null;
+  const failOnce = (s: DemoSecret) => {
+    s.failed += 1;
+    if (s.failed >= 5) {
+      s.failed = 0; s.lockCount += 1;
+      s.lockedUntil = s.lockCount >= 3 ? Infinity : Date.now() + 10 * 60000;
+      save();
+      return s.lockedUntil === Infinity ? lockedMsg(s)! : "5번 틀려서 10분 동안 잠겼어요.";
+    }
+    save();
+    return `이름 또는 비밀번호가 맞지 않아요. (${5 - s.failed}번 더 틀리면 잠겨요)`;
+  };
   const eventDate = (id: string) => load().events.find((e) => e.id === id)?.date ?? "";
   const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 
@@ -169,11 +210,65 @@ export function createMockApi(): Api {
     mode: "demo",
 
     async getSession() {
-      return load().signedIn ? { userId: DEMO_UID, email: "demo@example.com" } : null;
+      const d = load();
+      return d.currentUid ? { userId: d.currentUid } : null;
     },
-    async sendLoginCode() { /* 데모: 어떤 코드든 통과 */ },
-    async verifyLoginCode() { load().signedIn = true; save(); },
-    async signOut() { load().signedIn = false; save(); },
+    async login(name, secret) {
+      const m = byName(name);
+      const s = m && load().secrets![m.id];
+      if (!m || !s) throw new Error("이름 또는 비밀번호가 맞지 않아요.");
+      const locked = lockedMsg(s);
+      if (locked) throw new Error(locked);
+      if (s.secret === null) throw new Error("비밀번호가 초기화됐어요. ‘재설정’에서 운영진에게 받은 코드로 새로 정해 주세요.");
+      if (s.secret !== secret) throw new Error(failOnce(s));
+      Object.assign(s, { failed: 0, lockCount: 0, lockedUntil: null });
+      load().currentUid = m.userId; save();
+    },
+    async register(name, pin) {
+      const d = load();
+      const m = d.members.find((x) => x.name === name.trim());
+      if (!m) throw new Error("명단에 없는 이름이에요. 운영진에게 명단 등록을 요청해 주세요.");
+      if (m.userId || m.status !== "unclaimed") throw new Error("이미 가입한 이름이에요. 로그인해 주세요.");
+      const err = secretError(pin, "pin");
+      if (err) throw new Error(err);
+      m.userId = `u-${m.id}`; m.status = "pending";
+      d.secrets![m.id] = { secret: pin, kind: "pin", failed: 0, lockCount: 0, lockedUntil: null, resetCode: null };
+      d.currentUid = m.userId; save();
+    },
+    async resetWithCode(name, code, secret) {
+      const m = byName(name);
+      const s = m && load().secrets![m.id];
+      if (!m || !s || !s.resetCode) throw new Error("이름 또는 재설정 코드가 맞지 않아요.");
+      if (s.resetCode !== code.trim()) throw new Error(failOnce(s));
+      const err = secretError(secret, kindFor(m));
+      if (err) throw new Error(err);
+      Object.assign(s, { secret, kind: kindFor(m), failed: 0, lockCount: 0, lockedUntil: null, resetCode: null });
+      load().currentUid = m.userId; save();
+    },
+    async changeSecret(current, next) {
+      const m = me();
+      const s = m && load().secrets![m.id];
+      if (!m || !s) throw new Error("다시 로그인해 주세요.");
+      if (s.secret !== current) { failOnce(s); throw new Error("지금 비밀번호가 맞지 않아요."); }
+      const err = secretError(next, kindFor(m));
+      if (err) throw new Error(err);
+      Object.assign(s, { secret: next, kind: kindFor(m), failed: 0 });
+      save();
+    },
+    async mySecretKind() {
+      const m = me();
+      return m ? load().secrets![m.id]?.kind ?? null : null;
+    },
+    async adminResetSecret(memberId) {
+      const d = load();
+      const m = d.members.find((x) => x.id === memberId);
+      if (!m || !m.userId) throw new Error("아직 가입하지 않은 회원이에요");
+      const code = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
+      d.secrets![m.id] = { secret: null, kind: kindFor(m), failed: 0, lockCount: 0, lockedUntil: null, resetCode: code };
+      save();
+      return code;
+    },
+    async signOut() { load().currentUid = null; save(); },
 
     async getMe() { const m = me(); return m ? clone(m) : null; },
     async listMembers() { return clone(load().members); },
@@ -192,19 +287,14 @@ export function createMockApi(): Api {
       d.attendance = d.attendance.filter((a) => a.memberId !== id);
       save();
     },
-    async requestJoin(memberId) {
-      const m = load().members.find((x) => x.id === memberId);
-      if (!m || m.status !== "unclaimed") throw new Error("이미 다른 사람이 선택한 이름이에요");
-      m.status = "pending"; m.userId = DEMO_UID; save();
-    },
     async cancelJoin() {
       const m = me();
-      if (m && m.status === "pending") { m.status = "unclaimed"; m.userId = null; save(); }
+      if (m && m.status === "pending") { delete load().secrets![m.id]; m.status = "unclaimed"; m.userId = null; save(); }
     },
     async reviewJoin(memberId, approve) {
       const m = load().members.find((x) => x.id === memberId);
       if (!m) return;
-      if (approve) m.status = "active"; else { m.status = "unclaimed"; m.userId = null; }
+      if (approve) m.status = "active"; else { delete load().secrets![m.id]; m.status = "unclaimed"; m.userId = null; }
       save();
     },
 

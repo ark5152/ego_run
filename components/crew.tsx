@@ -5,7 +5,7 @@ import { getApi } from "@/lib/api";
 import type { Api, Member, Session, Settings } from "@/lib/types";
 import { LoginScreen } from "./login";
 import "./device"; // 홈 화면 추가 이벤트를 앱 시작 시점부터 받기 위해
-import { JoinScreen, PendingScreen } from "./join";
+import { NoMemberScreen, PendingScreen, StaffUpgradeScreen } from "./join";
 
 interface Crew {
   api: Api;
@@ -31,6 +31,7 @@ type State =
   | { k: "signedOut" }
   | { k: "noMember"; session: Session }
   | { k: "pending"; session: Session; me: Member }
+  | { k: "upgrade"; session: Session; me: Member }
   | { k: "ready"; session: Session; me: Member; settings: Settings; pendingCount: number };
 
 export function CrewProvider({ children }: { children: ReactNode }) {
@@ -44,6 +45,7 @@ export function CrewProvider({ children }: { children: ReactNode }) {
       const me = await api.getMe();
       if (!me || me.status === "unclaimed") return setSt({ k: "noMember", session });
       if (me.status === "pending") return setSt({ k: "pending", session, me });
+      if (me.role === "admin" && (await api.mySecretKind()) !== "password") return setSt({ k: "upgrade", session, me });
       const settings = await api.getSettings();
       let pendingCount = 0;
       if (me.role === "admin") {
@@ -70,7 +72,8 @@ export function CrewProvider({ children }: { children: ReactNode }) {
     );
   }
   if (st.k === "signedOut") return <>{demo}<LoginScreen api={api} onDone={reload} /></>;
-  if (st.k === "noMember") return <>{demo}<JoinScreen api={api} onDone={reload} /></>;
+  if (st.k === "noMember") return <>{demo}<NoMemberScreen api={api} onDone={reload} /></>;
+  if (st.k === "upgrade") return <>{demo}<StaffUpgradeScreen api={api} me={st.me} onDone={reload} /></>;
   if (st.k === "pending") return <>{demo}<PendingScreen api={api} me={st.me} onDone={reload} /></>;
 
   return (

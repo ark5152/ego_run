@@ -23,7 +23,7 @@ function Item({ href, label, badge }: { href: string; label: string; badge?: num
 }
 
 export default function MorePage() {
-  const { api, me, session, isAdmin, pendingCount, settings, reload } = useCrew();
+  const { api, me, isAdmin, pendingCount, settings, reload } = useCrew();
   const [theme, setThemeState] = useState<Theme>("light");
   const [installed, setInstalled] = useState(false);
   const [canPrompt, setCanPrompt] = useState(false);
@@ -53,7 +53,7 @@ export default function MorePage() {
     <Screen title="더보기">
       <section className="card">
         <div className="h2">{me.name}{isStaff(me) && <span className="tg me">운영진</span>}</div>
-        <div className="sm" style={{ marginTop: 4 }}>{session.email}</div>
+        <div className="sm" style={{ marginTop: 4 }}>{isStaff(me) ? "운영진" : "크루원"} · EGO 러닝크루</div>
       </section>
 
       <section className="card tight">
@@ -96,6 +96,8 @@ export default function MorePage() {
               : <span className="sm">아직 등록되지 않았어요</span>}
           </div>
         )}
+
+        <Item href="/password" label="비밀번호 변경" />
 
         <button type="button" className="row link plain" role="switch" aria-checked={theme === "dark"} onClick={toggleTheme}>
           <span>다크 모드</span>
