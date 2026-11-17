@@ -102,7 +102,7 @@ export function BrandHeader() {
   const { me } = useCrew();
   return (
     <header className="brand">
-      <img className="brand-logo" src="/ego-logo.png" alt="EGO Running Crew" width={720} height={307} />
+      <img className="brand-logo" src="/ego-logo.png" alt="EGO" width={800} height={140} />
       <Link href="/more" className="me-chip" aria-label={`내 정보: ${me.name}`}>
         <span className="av" aria-hidden="true">{me.name.slice(-2)}</span>
         <span className="nm">{me.name}</span>
