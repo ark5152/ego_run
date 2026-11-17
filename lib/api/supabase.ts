@@ -16,8 +16,21 @@ const toRace = (r: any): RaceRecord => ({
   id: r.id, memberId: r.member_id, course: r.course, seconds: r.seconds, raceName: r.race_name, raceDate: r.race_date,
 });
 
+/** Supabase 의 영어 오류를 회원이 이해할 수 있는 말로 바꾼다 */
+export function friendly(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("rate limit") || m.includes("for security purposes")) return "요청이 너무 많아요. 1분쯤 뒤에 다시 시도해 주세요.";
+  if (m.includes("token has expired") || m.includes("otp") && m.includes("invalid") || m.includes("invalid token")) return "인증 코드가 맞지 않거나 만료됐어요. 코드를 다시 받아 주세요.";
+  if (m.includes("invalid email") || m.includes("unable to validate email")) return "이메일 주소를 확인해 주세요.";
+  if (m.includes("signups not allowed")) return "새 로그인이 막혀 있어요. 운영진에게 문의해 주세요.";
+  if (m.includes("row-level security") || m.includes("permission denied")) return "이 작업을 할 권한이 없어요.";
+  if (m.includes("failed to fetch") || m.includes("network")) return "인터넷 연결을 확인해 주세요.";
+  if (m.includes("jwt expired")) return "로그인이 만료됐어요. 다시 로그인해 주세요.";
+  return message;
+}
+
 function check<T>(res: { data: T; error: any }): T {
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw new Error(friendly(res.error.message));
   return res.data;
 }
 
@@ -51,11 +64,11 @@ export function createSupabaseApi(url: string, key: string): Api {
         email,
         options: { emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(friendly(error.message));
     },
     async verifyLoginCode(email, code) {
       const { error } = await sb.auth.verifyOtp({ email, token: code, type: "email" });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(friendly(error.message));
     },
     async signOut() {
       await sb.auth.signOut();
@@ -109,9 +122,12 @@ export function createSupabaseApi(url: string, key: string): Api {
       const r = check(await sb.from("events").select("*").eq("id", id).maybeSingle());
       return r ? toEvent(r) : null;
     },
-    async createEvent(e) {
-      const r: any = check(await sb.from("events").insert(e).select("id").single());
-      return r.id as string;
+    async createEvent(e, attendees = []) {
+      // 일정과 참석자를 한 번에(중간에 실패하면 둘 다 저장되지 않음)
+      const id = check(await sb.rpc("create_event", {
+        p_date: e.date, p_title: e.title, p_kind: e.kind, p_member_ids: attendees,
+      })) as unknown as string;
+      return id;
     },
     async deleteEvent(id) {
       check(await sb.from("events").delete().eq("id", id));
@@ -149,7 +165,7 @@ export function createSupabaseApi(url: string, key: string): Api {
       const ext = (photo.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
       const path = `${id}/${Date.now()}.${ext || "jpg"}`;
       const up = await sb.storage.from("distance-photos").upload(path, photo, { contentType: photo.type || undefined });
-      if (up.error) throw new Error(up.error.message);
+      if (up.error) throw new Error(friendly(up.error.message));
       check(await sb.from("distance_submissions").insert({ member_id: (me as any).id, month, km, photo_path: path }));
     },
     async reviewDistance(id, approve) {

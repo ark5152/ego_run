@@ -18,7 +18,8 @@ export function LoginScreen({ api, onDone }: { api: Api; onDone: () => void }) {
   return (
     <div className="shell">
       <div className="center">
-        <div className="logo">EGO RUNNING CREW</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/ego-logo.png" alt="EGO" width={800} height={140} style={{ width: 170, height: "auto" }} />
         <p className="sm" style={{ margin: 0 }}>이메일로 받은 인증 코드로 로그인해요.</p>
 
         {!sent ? (

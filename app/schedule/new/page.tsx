@@ -40,8 +40,7 @@ function NewEvent() {
   const save = async () => {
     setBusy(true); setErr(null);
     try {
-      const id = await api.createEvent({ title: title.trim(), date, kind });
-      if (picked.size > 0) await api.setAttendance(id, [...picked]);
+      await api.createEvent({ title: title.trim(), date, kind }, [...picked]);
       router.replace("/schedule");
     } catch (e) { setErr(e instanceof Error ? e.message : String(e)); setBusy(false); }
   };

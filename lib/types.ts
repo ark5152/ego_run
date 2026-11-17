@@ -102,7 +102,7 @@ export interface Api {
   listEvents(from: string, to: string): Promise<CrewEvent[]>;
   getEvent(id: string): Promise<CrewEvent | null>;
   /** 만든 일정의 id 를 돌려줌 */
-  createEvent(input: Omit<CrewEvent, "id">): Promise<string>;
+  createEvent(input: Omit<CrewEvent, "id">, attendees?: string[]): Promise<string>;
   deleteEvent(id: string): Promise<void>;
   listAttendance(q: { from?: string; to?: string; memberId?: string; eventId?: string }): Promise<AttendanceRow[]>;
   setAttendance(eventId: string, memberIds: string[]): Promise<void>;

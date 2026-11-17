@@ -33,34 +33,48 @@ npm run dev
 
 http://localhost:3000 을 휴대폰 화면 크기로 열어 보세요.
 
-## Supabase 연결
+## 실제 운영으로 배포하기
 
-1. https://supabase.com 에서 새 프로젝트를 만듭니다(리전: Northeast Asia (Seoul) 추천).
-2. **SQL Editor**에 `supabase/schema.sql` 전체를 붙여넣고 실행합니다. 테이블, 권한(RLS), 사진 저장소가 만들어집니다.
-3. **Authentication → Emails → Magic Link** 템플릿 본문에 `{{ .Token }}`을 넣어 메일에 6자리 코드가 나오게 합니다(링크도 그대로 둬도 됩니다).
-4. **Authentication → URL Configuration**의 Site URL을 배포 주소로 설정합니다.
-5. `.env.example`을 `.env.local`로 복사하고 **Project Settings → API**의 URL과 anon key를 넣습니다.
+앱은 환경변수 두 개(`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`)가 있으면 **실제 모드**, 없으면 **데모 모드**로 실행됩니다.
+코드는 그대로 두고 아래 순서로 설정만 하면 됩니다.
 
-> 이미 `schema.sql`을 실행한 프로젝트라면 `supabase/migrations/` 의 `002_kinds_instagram.sql`, `003_social_limit.sql`을 차례로 한 번씩 실행하세요(일정 구분 ‘친목·기타’, 인스타그램 계정, 친목 월 3회 제한).
+### 1. Supabase 프로젝트 만들기
+1. https://supabase.com 에서 새 프로젝트를 만듭니다(리전: Northeast Asia (Seoul) 추천). DB 비밀번호는 따로 보관하세요.
+2. **SQL Editor**에 `supabase/schema.sql` 전체를 붙여넣고 한 번 실행합니다. 테이블·권한(RLS)·사진 저장소·친목 월 3회 제한이 모두 만들어집니다.
+   - 예전에 `schema.sql`을 이미 실행한 프로젝트라면, 대신 `supabase/migrations/`의 `002` → `003` → `004` 파일을 차례로 한 번씩 실행하세요.
 
-### 첫 관리자 만들기
+### 2. 로그인(이메일 인증 코드) 설정
+1. **Authentication → Emails(Templates) → Magic Link** 본문에 `{{ .Token }}`을 넣어 메일에 6자리 코드가 보이게 합니다.
+2. **Authentication → URL Configuration**의 Site URL을 Vercel 주소(예: `https://ego-run.vercel.app`)로 바꿉니다.
+3. **메일 발송 서버(SMTP) 연결 — 꼭 필요합니다.** Supabase 기본 메일 서버는 테스트용이라 프로젝트 팀원 주소로만, 시간당 몇 통만 보냅니다.
+   크루원 모두가 로그인하려면 **Authentication → SMTP Settings**에 Resend·Gmail 등 외부 메일 서버를 연결하세요.
 
-1. SQL Editor에서 명단을 등록합니다.
+### 3. 운영진 계정 만들기
+1. SQL Editor에서 크루 명단을 등록합니다.
    ```sql
    insert into members (name, gender) values ('김서준','M'), ('박지호','M'), ('이하윤','F');
    ```
-2. 앱에서 본인 이메일로 로그인 → 내 이름 선택 → 승인 요청.
-3. SQL Editor에서 본인을 관리자로 승인합니다.
+2. 배포된 앱에서 본인 이메일로 로그인 → 내 이름 선택 → 승인 요청.
+3. SQL Editor에서 본인을 운영진으로 승인합니다.
    ```sql
    update members set status = 'active', role = 'admin', is_leader = true where name = '김서준';
    ```
+이후 명단 추가·승인·운영진 지정은 앱의 **더보기 → 회원 관리 / 승인 관리**에서 합니다.
+인스타그램 계정은 **더보기 → 크루 설정**에서 등록합니다.
 
-이후 명단 추가와 승인은 앱의 **더보기 → 회원 관리 / 승인 대기**에서 하면 됩니다.
+### 4. Vercel에 연결
+1. Vercel 프로젝트 → **Settings → Environment Variables**에 넣습니다(값은 Supabase **Project Settings → API**에서 복사).
+   - `NEXT_PUBLIC_SUPABASE_URL` = Project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = anon public key
+   - `service_role` 키는 절대 넣지 마세요(모든 권한을 우회하는 키).
+2. **Deployments**에서 최신 배포를 **Redeploy** 합니다. 환경변수는 다시 배포해야 적용돼요.
+3. 휴대폰에서 주소를 열어 ‘데모 모드’ 표시가 사라지고 로그인 화면이 나오면 성공입니다.
+4. 데모도 계속 보고 싶다면 같은 저장소로 Vercel 프로젝트를 하나 더 만들고, 그쪽에는 환경변수를 넣지 마세요.
 
-## 배포
-
-Vercel에 저장소를 연결하고 환경변수 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 넣으면 됩니다.
-휴대폰에서 주소를 열고 ‘홈 화면에 추가’하면 앱처럼 설치됩니다.
+### 확인한 것
+- `schema.sql`(새로 설치)과 `migrations/002~004`(업그레이드)를 PostgreSQL 16에서 실행해 결과 구조가 같은 것을 확인했습니다.
+- 권한 점검 17가지: 운영진만 일정·출석·거리 인정 취소·설정 변경 가능, 회원은 스스로 운영진이 될 수 없음, 승인 대기 회원은 크루 데이터를 볼 수 없음,
+  친목은 어떤 경로로도 한 달 3회를 넘길 수 없음, 일정+참석자 저장은 중간에 실패하면 함께 취소됨.
 
 ## 구조
 

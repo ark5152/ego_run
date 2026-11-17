@@ -215,13 +215,14 @@ export function createMockApi(): Api {
       return clone(load().events.filter((e) => e.date >= from && e.date <= to).sort((a, b) => a.date.localeCompare(b.date)));
     },
     async getEvent(id) { const e = load().events.find((x) => x.id === id); return e ? clone(e) : null; },
-    async createEvent(e) {
+    async createEvent(e, attendees = []) {
       const d = load();
       if (e.kind === "social" && d.events.filter((x) => x.kind === "social" && x.date.slice(0, 7) === e.date.slice(0, 7)).length >= SOCIAL_PER_MONTH) {
         throw new Error(`친목 일정은 한 달에 ${SOCIAL_PER_MONTH}회까지 등록할 수 있어요`);
       }
       const id = nid("e");
       d.events.push({ id, ...e });
+      d.attendance.push(...attendees.map((memberId) => ({ eventId: id, memberId })));
       save();
       return id;
     },
