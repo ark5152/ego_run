@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { kindLabel } from "@/lib/types";
+import { kindLabel, SOCIAL_PER_MONTH } from "@/lib/types";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, MonthNav, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
@@ -58,8 +58,18 @@ function Schedule() {
         const today = todayStr();
         const dayEvents = data.events.filter((e) => e.date === sel);
 
+        const socialUsed = data.events.filter((e) => e.kind === "social").length;
+        const socialLeft = Math.max(0, SOCIAL_PER_MONTH - socialUsed);
+
         return (
           <>
+            <section className={socialLeft ? "card quota" : "card quota out"} aria-label="남은 친목 횟수">
+              <div>
+                <div className="h2">{m}월 남은 친목</div>
+                <div className="sm">매월 {SOCIAL_PER_MONTH}회 · 이월 없음</div>
+              </div>
+              <b><em>{socialLeft}</em> / {SOCIAL_PER_MONTH}회</b>
+            </section>
             <section className="card" aria-label="달력">
               <div className="cal wk" aria-hidden="true">{WEEKDAYS.map((w) => <span key={w}>{w}</span>)}</div>
               <div className="cal">

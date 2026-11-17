@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { kindLabel } from "@/lib/types";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, Screen } from "@/components/shell";
+import { MemberPicker } from "@/components/member-picker";
 import { fullDateLabel, sortKo } from "@/lib/format";
 
 /** 일정 상세: 회원은 참석자 확인, 관리자는 출석 체크 */
@@ -33,11 +34,7 @@ function EventDetail() {
     if (data) { setChecked(new Set(data.att.map((a) => a.memberId))); setDirty(false); }
   }, [data]);
 
-  const toggle = (mid: string) => {
-    const next = new Set(checked);
-    if (next.has(mid)) next.delete(mid); else next.add(mid);
-    setChecked(next); setDirty(true); setMsg(null);
-  };
+  const pick = (next: Set<string>) => { setChecked(next); setDirty(true); setMsg(null); };
 
   const save = async () => {
     setBusy(true); setErr(null);
@@ -69,13 +66,7 @@ function EventDetail() {
 
       {isAdmin ? (
         <>
-          <section className="card tight" role="group" aria-label="출석 체크">
-            {data.members.map((m) => (
-              <button key={m.id} type="button" role="checkbox" className="rd ck" aria-checked={checked.has(m.id)} onClick={() => toggle(m.id)}>
-                <i /><span>{m.name}</span>
-              </button>
-            ))}
-          </section>
+          <MemberPicker members={data.members} selected={checked} onChange={pick} />
           <ErrorText msg={err} />
           {msg && <p className="sm" role="status" style={{ margin: 0, textAlign: "center" }}>{msg}</p>}
           <button className="btn" disabled={!dirty || busy} onClick={save}>{busy ? "저장 중…" : "출석 저장"}</button>

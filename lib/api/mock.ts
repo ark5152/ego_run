@@ -2,6 +2,7 @@ import type {
   Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, Settings,
 } from "../types";
 import { dateStr } from "../format";
+import { SOCIAL_PER_MONTH } from "../types";
 
 /**
  * 데모 모드: Supabase 설정이 없을 때 쓰는 예시 데이터.
@@ -214,7 +215,16 @@ export function createMockApi(): Api {
       return clone(load().events.filter((e) => e.date >= from && e.date <= to).sort((a, b) => a.date.localeCompare(b.date)));
     },
     async getEvent(id) { const e = load().events.find((x) => x.id === id); return e ? clone(e) : null; },
-    async createEvent(e) { load().events.push({ id: nid("e"), ...e }); save(); },
+    async createEvent(e) {
+      const d = load();
+      if (e.kind === "social" && d.events.filter((x) => x.kind === "social" && x.date.slice(0, 7) === e.date.slice(0, 7)).length >= SOCIAL_PER_MONTH) {
+        throw new Error(`친목 일정은 한 달에 ${SOCIAL_PER_MONTH}회까지 등록할 수 있어요`);
+      }
+      const id = nid("e");
+      d.events.push({ id, ...e });
+      save();
+      return id;
+    },
     async deleteEvent(id) {
       const d = load();
       d.events = d.events.filter((e) => e.id !== id);

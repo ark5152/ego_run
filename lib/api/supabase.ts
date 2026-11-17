@@ -110,7 +110,8 @@ export function createSupabaseApi(url: string, key: string): Api {
       return r ? toEvent(r) : null;
     },
     async createEvent(e) {
-      check(await sb.from("events").insert(e));
+      const r: any = check(await sb.from("events").insert(e).select("id").single());
+      return r.id as string;
     },
     async deleteEvent(id) {
       check(await sb.from("events").delete().eq("id", id));

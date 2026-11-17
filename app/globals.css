@@ -280,3 +280,19 @@ select.inp { appearance: none; background-image: none; }
 /* 다크 모드: 로고는 밝은 빨강으로 */
 :root[data-theme="dark"] .brand-logo { filter: brightness(1.25) saturate(1.05); }
 :root[data-theme="dark"] .hero { background: linear-gradient(135deg, #8e2822 0%, #4f1411 100%); }
+
+/* ── 참석자 선택(이름 칩) ── */
+.picker { gap: 12px; }
+.pk-n { font-style: normal; color: var(--accent); }
+.link-btn { border: 0; background: none; color: var(--muted); font-size: 13px; padding: 4px 0; }
+.chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.chip {
+  height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--field); color: var(--ink);
+  font-size: 15px; font-weight: 700; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chip:active { background: var(--line-soft); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.quota { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.quota b { font-size: 20px; white-space: nowrap; flex: none; font-variant-numeric: tabular-nums; }
+.quota b em { font-style: normal; color: var(--accent); }
+.quota.out b em { color: var(--muted); }

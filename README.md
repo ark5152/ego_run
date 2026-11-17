@@ -41,7 +41,7 @@ http://localhost:3000 을 휴대폰 화면 크기로 열어 보세요.
 4. **Authentication → URL Configuration**의 Site URL을 배포 주소로 설정합니다.
 5. `.env.example`을 `.env.local`로 복사하고 **Project Settings → API**의 URL과 anon key를 넣습니다.
 
-> 이미 `schema.sql`을 실행한 프로젝트라면 `supabase/migrations/002_kinds_instagram.sql`을 한 번 실행하세요(일정 구분 ‘친목·기타’, 인스타그램 계정).
+> 이미 `schema.sql`을 실행한 프로젝트라면 `supabase/migrations/` 의 `002_kinds_instagram.sql`, `003_social_limit.sql`을 차례로 한 번씩 실행하세요(일정 구분 ‘친목·기타’, 인스타그램 계정, 친목 월 3회 제한).
 
 ### 첫 관리자 만들기
 

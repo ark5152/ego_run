@@ -20,6 +20,9 @@ export const EVENT_KINDS: { value: EventKind; label: string }[] = [
   { value: "social", label: "친목" },
   { value: "etc", label: "기타" },
 ];
+/** 친목 일정은 매월 3회까지(이월 없음) */
+export const SOCIAL_PER_MONTH = 3;
+
 export const kindLabel = (k: EventKind) => EVENT_KINDS.find((x) => x.value === k)?.label ?? "기타";
 
 /** 크루장·관리자를 하나로 묶어 부르는 이름 */
@@ -98,7 +101,8 @@ export interface Api {
   // events & attendance
   listEvents(from: string, to: string): Promise<CrewEvent[]>;
   getEvent(id: string): Promise<CrewEvent | null>;
-  createEvent(input: Omit<CrewEvent, "id">): Promise<void>;
+  /** 만든 일정의 id 를 돌려줌 */
+  createEvent(input: Omit<CrewEvent, "id">): Promise<string>;
   deleteEvent(id: string): Promise<void>;
   listAttendance(q: { from?: string; to?: string; memberId?: string; eventId?: string }): Promise<AttendanceRow[]>;
   setAttendance(eventId: string, memberIds: string[]): Promise<void>;
