@@ -1,0 +1,6 @@
+# Same Worker as the existing Notion widgets: secrets (NOTION_TOKEN, WIDGET_SECRET) are kept.
+name = "my-little-budget-widgets"
+main = "src/index.mjs"
+compatibility_date = "2026-10-15"
+workers_dev = true
+keep_vars = true

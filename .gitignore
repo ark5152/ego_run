@@ -1,0 +1,6 @@
+node_modules/
+build/
+.wrangler/
+.dev.vars
+.widget-secret
+*-주소.txt
