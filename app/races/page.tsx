@@ -25,7 +25,7 @@ export default function RacesPage() {
   const years = Array.from({ length: 5 }, (_, i) => thisYear - i);
 
   return (
-    <Screen title="대회" right={<Link href="/races/new" className="icon-btn" aria-label="대회 기록 등록"><Icon name="plus" /></Link>}>
+    <Screen title="명예의전당" right={<Link href="/races/new" className="icon-btn" aria-label="대회 기록 등록"><Icon name="plus" /></Link>}>
       <div className="flt">
         <label className="sort">
           <span className="sr-only">연도</span>

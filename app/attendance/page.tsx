@@ -6,7 +6,7 @@ import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, MonthNav, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
 import { dateStr, dayLabel, monthLabel, monthRange, monthStr, parseMonth, shiftMonth, sortKo, todayStr, WEEKDAYS } from "@/lib/format";
-import { isStaff, kindLabel } from "@/lib/types";
+import { countsAsAttendance, isStaff, kindLabel } from "@/lib/types";
 
 type Sort = "name" | "most" | "least";
 
@@ -39,8 +39,10 @@ export default function AttendancePage() {
       <ErrorText msg={error} />
       {!data ? <Loading /> : (() => {
         const today = todayStr();
-        const held = data.events.filter((e) => e.date <= today).length;
-        const countOf = (id: string) => data.att.filter((a) => a.memberId === id).length;
+        // 출석 횟수·모임 수는 구분이 '러닝'인 일정만 셈
+        const held = data.events.filter((e) => e.date <= today && e.kind === "run").length;
+        const runAtt = data.att.filter(countsAsAttendance);
+        const countOf = (id: string) => runAtt.filter((a) => a.memberId === id).length;
         const kmOf = (id: string) => data.dist.filter((d) => d.memberId === id).reduce((s, d) => s + d.km, 0);
         const certified = data.members.filter((m) => kmOf(m.id) >= settings.distanceTarget).length;
         const short = data.members.filter((m) => countOf(m.id) < settings.minAttendance).length;
@@ -57,7 +59,7 @@ export default function AttendancePage() {
           }
           const hasEvent = new Set(data.events.map((e) => e.date));
           const dayEvents = data.events.filter((e) => e.date === sel);
-          const total = data.att.length;
+          const total = runAtt.length;
           return (
             <>
               <section className="card" aria-label="날짜별 출석 달력" style={{ padding: "10px 8px" }}>
@@ -78,7 +80,7 @@ export default function AttendancePage() {
                   })}
                 </div>
               </section>
-              <p className="sm" style={{ margin: "-4px 0 0", textAlign: "right" }}>이 달 출석 {total}건 · 날짜 밑 숫자는 그날 총 참여 인원</p>
+              <p className="sm" style={{ margin: "-4px 0 0", textAlign: "right" }}>이 달 러닝 출석 {total}건 · 날짜 밑 숫자는 그날 총 참여 인원</p>
 
               <div className="section-title">{dayLabel(sel)}</div>
               <section className="card tight" aria-label="선택한 날의 일정">
@@ -141,7 +143,7 @@ export default function AttendancePage() {
               })}
             </section>
             <p className="sm" style={{ margin: 0 }}>
-              최소 참석 {settings.minAttendance}회 · 거리 인증은 이번 달 인정 거리 {settings.distanceTarget}km 이상
+              출석 횟수는 ‘러닝’ 일정만 세요 · 최소 참석 {settings.minAttendance}회 · 거리 인증은 이번 달 인정 거리 {settings.distanceTarget}km 이상
             </p>
           </>
         );

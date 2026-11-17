@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { kindLabel, SOCIAL_PER_MONTH } from "@/lib/types";
+import { countsAsAttendance, kindLabel, SOCIAL_PER_MONTH } from "@/lib/types";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, MonthNav, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
@@ -105,7 +105,7 @@ function Schedule() {
         );
       })() : (() => {
         const { y, m } = parseMonth(month);
-        const att = yearly ? data.yearAtt : data.att;
+        const att = (yearly ? data.yearAtt : data.att).filter(countsAsAttendance); // 러닝 일정만
         const dist = yearly ? data.yearDist : data.yearDist.filter((d) => d.month === month);
         const rows = data.members.map((mem) => ({
           m: mem,
@@ -115,7 +115,7 @@ function Schedule() {
 
         return (
           <>
-            <p className="sm" style={{ margin: 0 }}>{yearly ? `${y}년 누적 참석 · 거리` : `${m}월 참석 · 거리`} · 모든 회원이 조회할 수 있어요</p>
+            <p className="sm" style={{ margin: 0 }}>{yearly ? `${y}년 누적 참석 · 거리` : `${m}월 참석 · 거리`} · 참석은 러닝 일정만 · 모든 회원이 조회할 수 있어요</p>
             <section className="card" style={{ paddingTop: 4, paddingBottom: 4 }} aria-label={yearly ? "연간 참석 랭킹" : "월간 참석 랭킹"}>
               <div className="rr th"><span>순위</span><span>이름</span><span>참석</span><span>{yearly ? "연간 거리" : "월간 거리"}</span></div>
               {rows.map((r, i) => (

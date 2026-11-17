@@ -39,7 +39,11 @@ export interface AttendanceRow {
   eventId: string;
   memberId: string;
   date: string; // event date, YYYY-MM-DD
+  kind: EventKind; // 일정 구분 — 출석 횟수는 '러닝'만 셈
 }
+
+/** 출석 횟수에 들어가는 일정: 구분이 '러닝'인 것만 */
+export const countsAsAttendance = (a: { kind: EventKind }) => a.kind === "run";
 
 export type ReviewStatus = "pending" | "approved" | "rejected";
 

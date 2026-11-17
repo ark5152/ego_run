@@ -150,14 +150,14 @@ export function createSupabaseApi(url: string, key: string): Api {
     },
     async listAttendance(q) {
       const rows = await fetchAll(() => {
-        let b = sb.from("attendance").select("event_id, member_id, events!inner(date)");
+        let b = sb.from("attendance").select("event_id, member_id, events!inner(date, kind)");
         if (q.from) b = b.gte("events.date", q.from);
         if (q.to) b = b.lte("events.date", q.to);
         if (q.memberId) b = b.eq("member_id", q.memberId);
         if (q.eventId) b = b.eq("event_id", q.eventId);
         return b.order("event_id").order("member_id");
       });
-      return rows.map((r): AttendanceRow => ({ eventId: r.event_id, memberId: r.member_id, date: r.events.date }));
+      return rows.map((r): AttendanceRow => ({ eventId: r.event_id, memberId: r.member_id, date: r.events.date, kind: r.events.kind }));
     },
     async setAttendance(eventId, memberIds) {
       check(await sb.rpc("set_attendance", { p_event_id: eventId, p_member_ids: memberIds }));

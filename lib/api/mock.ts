@@ -324,7 +324,7 @@ export function createMockApi(): Api {
     },
     async listAttendance(q) {
       return load().attendance
-        .map((a): AttendanceRow => ({ ...a, date: eventDate(a.eventId) }))
+        .map((a): AttendanceRow => ({ ...a, date: eventDate(a.eventId), kind: load().events.find((e) => e.id === a.eventId)?.kind ?? "etc" }))
         .filter((a) => a.date
           && (!q.from || a.date >= q.from) && (!q.to || a.date <= q.to)
           && (!q.memberId || a.memberId === q.memberId) && (!q.eventId || a.eventId === q.eventId));
