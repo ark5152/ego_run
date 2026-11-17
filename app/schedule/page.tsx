@@ -68,7 +68,7 @@ function Schedule() {
                 <div className="h2">{m}월 남은 친목</div>
                 <div className="sm">매월 {SOCIAL_PER_MONTH}회 · 이월 없음</div>
               </div>
-              <b><em>{socialLeft}</em> / {SOCIAL_PER_MONTH}회</b>
+              <b><em>{socialLeft}</em>회</b>
             </section>
             <section className="card" aria-label="달력">
               <div className="cal wk" aria-hidden="true">{WEEKDAYS.map((w) => <span key={w}>{w}</span>)}</div>
