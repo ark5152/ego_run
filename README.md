@@ -53,6 +53,7 @@ http://localhost:3000 을 휴대폰 화면 크기로 열어 보세요.
    - 이름: `pin-auth`
    - `supabase/functions/pin-auth/index.ts` 내용을 전부 붙여넣고 **Deploy**
    - 함수 설정에서 **Verify JWT(Enforce JWT verification)를 끕니다**. 로그인 전에도 호출해야 하기 때문이며, 함수가 직접 확인합니다.
+   - 함수 **Overview**의 주소 끝이 `/functions/v1/pin-auth`인지 확인하세요. 처음 만들 때 다른 이름(예: `quick-action`)으로 생성됐다면, Vercel 환경변수 `PIN_AUTH_FUNCTION`에 그 이름을 넣으면 됩니다.
 2. **Authentication → Sign In / Providers**에서
    - **Email** 공급자는 켜 둡니다(내부적으로 사용).
    - **Allow new users to sign up**은 **끕니다**. 가입은 `pin-auth`를 통해서만 됩니다.

@@ -52,15 +52,18 @@ export function createSupabaseApi(url: string, key: string): Api {
 
   /** 이름+비밀번호 확인은 서버 함수(pin-auth)가 하고, 성공하면 세션을 돌려받아 로그인 */
   const pinAuth = async (body: Record<string, string>) => {
-    const { data, error } = await sb.functions.invoke("pin-auth", { body });
-    if (error) {
-      // 원인을 알 수 있게 상태 코드를 함께 보여줌 (404: 함수 없음, 401: Verify JWT 켜짐, 5xx: 함수 오류)
-      const status = (error as { context?: Response }).context?.status;
-      const hint = status === 404 ? "서버 기능(pin-auth)을 찾지 못했어요"
-        : status === 401 || status === 403 ? "서버 기능의 Verify JWT 설정을 꺼 주세요"
-        : status && status >= 500 ? "서버 기능 실행 중 오류가 났어요"
-        : "서버에 연결하지 못했어요";
-      throw new Error(`${hint}. 잠시 뒤 다시 시도해 주세요. (${status ? `코드 ${status}` : error.name ?? "연결 오류"})`);
+    // 같은 주소(Vercel)의 /api/pin-auth 를 거쳐 Supabase 서버 기능으로 전달 → 브라우저 차단 없음, 실패 원인 코드 표시
+    const token = (await sb.auth.getSession()).data.session?.access_token;
+    let data: { ok?: boolean; error?: string; session?: { access_token: string; refresh_token: string } } | null = null;
+    try {
+      const res = await fetch("/api/pin-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(body),
+      });
+      data = await res.json().catch(() => ({ ok: false, error: `앱 서버 응답 오류예요. (코드 ${res.status})` }));
+    } catch {
+      throw new Error("인터넷 연결을 확인해 주세요.");
     }
     if (!data?.ok) throw new Error(data?.error ?? "요청에 실패했어요.");
     if (data.session) check(await sb.auth.setSession(data.session));
