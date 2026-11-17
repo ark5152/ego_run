@@ -73,6 +73,18 @@ export function parseHms(text: string): number | null {
   return total > 0 ? total : null;
 }
 
+/**
+ * 숫자만 입력해도 시:분:초로 맞춰 보여줌(오른쪽부터 채움, 최대 6자리)
+ * 예: "34404" → "03:44:04", "4455" → "00:44:55", 지우면 한 자리씩 오른쪽으로 당겨짐
+ */
+export function formatTimeDigits(input: string, prev = ""): string {
+  const digits = input.replace(/\D/g, "").replace(/^0+/, "");
+  if (digits.length > 6) return prev; // 6자리(시·분·초)를 넘는 입력은 무시
+  if (!digits) return "";
+  const p = digits.padStart(6, "0");
+  return `${p.slice(0, 2)}:${p.slice(2, 4)}:${p.slice(4, 6)}`;
+}
+
 export const COURSE_LABEL = { full: "풀코스", half: "하프코스", "10k": "10K" } as const;
 
 export function sortKo<T>(arr: T[], key: (t: T) => string): T[] {

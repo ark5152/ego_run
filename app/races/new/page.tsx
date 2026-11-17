@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
-import { COURSE_LABEL, hms, parseHms, todayStr } from "@/lib/format";
+import { COURSE_LABEL, formatTimeDigits, hms, parseHms, todayStr } from "@/lib/format";
 import type { Course } from "@/lib/types";
 
 export default function NewRacePage() {
@@ -20,7 +20,7 @@ export default function NewRacePage() {
   const seconds = parseHms(time);
 
   const save = async () => {
-    if (!seconds) return setErr("기록을 시:분:초 형식으로 입력해 주세요 (예: 3:44:04)");
+    if (!seconds) return setErr("기록을 확인해 주세요. 분과 초는 59까지예요 (예: 34404 → 03:44:04)");
     setBusy(true); setErr(null);
     try {
       await api.addRaceRecord({ course, seconds, raceName: raceName.trim(), raceDate });
@@ -47,8 +47,9 @@ export default function NewRacePage() {
           ]} />
         </div>
         <div className="field">
-          <label htmlFor="tm">기록 (시:분:초)</label>
-          <input id="tm" className="inp" inputMode="numeric" required placeholder="3:44:04" value={time} onChange={(e) => setTime(e.target.value)} />
+          <label htmlFor="tm">기록 (숫자만 입력하면 시:분:초로 바뀌어요)</label>
+          <input id="tm" className="inp" inputMode="numeric" required placeholder="예: 34404 → 03:44:04" autoComplete="off"
+            value={time} onChange={(e) => setTime(formatTimeDigits(e.target.value, time))} style={{ fontVariantNumeric: "tabular-nums" }} />
         </div>
         <div className="field">
           <label htmlFor="rn">대회명</label>

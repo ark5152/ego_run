@@ -59,7 +59,7 @@ export function LoginScreen({ api, onDone }: { api: Api; onDone: () => void }) {
         <form className="stack" onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <div className="field">
             <label htmlFor="nm">이름</label>
-            <input id="nm" className="inp" autoComplete="username" required value={name} onChange={(e) => setName(e.target.value)} placeholder="명단에 등록된 이름" />
+            <input id="nm" className="inp" autoComplete="username" required value={name} onChange={(e) => setName(e.target.value)} placeholder={mode === "join" ? "본명을 적어주세요." : "명단에 등록된 이름"} />
           </div>
 
           {mode === "reset" && (
@@ -74,7 +74,7 @@ export function LoginScreen({ api, onDone }: { api: Api; onDone: () => void }) {
             <label htmlFor="pw">{mode === "login" ? "비밀번호" : mode === "join" ? "비밀번호 (숫자 4자리)" : "새 비밀번호"}</label>
             <input id="pw" className="inp" type="password" required value={secret} onChange={(e) => setSecret(e.target.value)}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
-              placeholder={mode === "join" ? "숫자 4자리" : "크루원 숫자 4자리 · 운영진 영문+숫자 8자리 이상"}
+              placeholder="숫자 4자리"
               {...(mode === "join" ? pinProps : {})} />
           </div>
 
