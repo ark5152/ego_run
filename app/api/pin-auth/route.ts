@@ -14,7 +14,8 @@ const reasons: Record<number, string> = {
 export async function POST(req: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const fn = process.env.PIN_AUTH_FUNCTION || "pin-auth";
+  // 함수 주소 후보: 환경변수 → pin-auth → quick-action(대시보드 에디터가 처음 붙인 이름) 순서로 시도
+  const candidates = [...new Set([process.env.PIN_AUTH_FUNCTION, "pin-auth", "quick-action"].filter(Boolean) as string[])];
   if (!url || !key) return NextResponse.json({ ok: false, error: "Supabase 연결 설정(환경변수)이 없어요." });
 
   let body: string;
@@ -25,14 +26,18 @@ export async function POST(req: Request) {
   const auth = req.headers.get("authorization");
   headers.Authorization = auth && /^Bearer\s+\S+$/i.test(auth) ? auth : `Bearer ${key}`;
 
-  let res: Response;
-  try {
-    res = await fetch(`${url.replace(/\/+$/, "")}/functions/v1/${fn}`, {
-      method: "POST", headers, body, cache: "no-store", signal: AbortSignal.timeout(20000),
-    });
-  } catch {
-    return NextResponse.json({ ok: false, error: "Supabase 서버에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요. (연결 오류)" });
+  let res: Response | null = null;
+  for (const fn of candidates) {
+    try {
+      res = await fetch(`${url.replace(/\/+$/, "")}/functions/v1/${fn}`, {
+        method: "POST", headers, body, cache: "no-store", signal: AbortSignal.timeout(20000),
+      });
+    } catch {
+      return NextResponse.json({ ok: false, error: "Supabase 서버에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요. (연결 오류)" });
+    }
+    if (res.status !== 404) break;
   }
+  if (!res) return NextResponse.json({ ok: false, error: "서버 기능 설정을 확인해 주세요." });
 
   const text = await res.text();
   try {
