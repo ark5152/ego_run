@@ -96,10 +96,10 @@ export function createSupabaseApi(url: string, key: string): Api {
 
     async getSettings(): Promise<Settings> {
       const r: any = check(await sb.from("settings").select("*").eq("id", 1).single());
-      return { minAttendance: r.min_attendance, distanceTarget: Number(r.distance_target) };
+      return { minAttendance: r.min_attendance, distanceTarget: Number(r.distance_target), instagram: r.instagram ?? "" };
     },
     async updateSettings(s) {
-      check(await sb.from("settings").update({ min_attendance: s.minAttendance, distance_target: s.distanceTarget }).eq("id", 1));
+      check(await sb.from("settings").update({ min_attendance: s.minAttendance, distance_target: s.distanceTarget, instagram: s.instagram }).eq("id", 1));
     },
 
     async listEvents(from, to) {

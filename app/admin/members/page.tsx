@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, Screen, Tabs } from "@/components/shell";
 import { sortKo } from "@/lib/format";
-import type { Gender, Member } from "@/lib/types";
+import { isStaff, type Gender, type Member } from "@/lib/types";
 
 const STATUS_LABEL = { active: "활동", pending: "승인 대기", unclaimed: "미가입" } as const;
 
@@ -18,7 +18,7 @@ export default function MembersAdminPage() {
 
   const { data, error, reload } = useLoad(() => api.listMembers(), []);
 
-  if (!isAdmin) return <Screen title="회원 관리" back tab="/more"><div className="empty">관리자만 볼 수 있어요</div></Screen>;
+  if (!isAdmin) return <Screen title="회원 관리" back tab="/more"><div className="empty">운영진만 볼 수 있어요</div></Screen>;
 
   const run = async (fn: () => Promise<void>) => {
     setErr(null);
@@ -72,22 +72,17 @@ function MemberRow({ m, isMe, open, onToggle, onPatch, onDelete }: {
         style={{ width: "100%", border: 0, background: "none", padding: 0, textAlign: "left" }}>
         <span>
           {m.name}
-          {m.isLeader && <span className="tg">크루장</span>}
-          {m.role === "admin" && <span className="tg me">관리자</span>}
+          {isStaff(m) && <span className="tg me">운영진</span>}
         </span>
         <span className={m.status === "active" ? "sm" : "bg"}>{STATUS_LABEL[m.status]} · {m.gender === "M" ? "남" : "여"}</span>
       </button>
       {open && (
         <div className="stack" style={{ padding: "4px 0 14px" }}>
           <Tabs value={m.gender} onChange={(g) => onPatch({ gender: g })} options={[{ value: "M", label: "남자" }, { value: "F", label: "여자" }]} />
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn small ghost" style={{ flex: 1 }} onClick={() => onPatch({ isLeader: !m.isLeader })}>
-              {m.isLeader ? "크루장 해제" : "크루장 지정"}
-            </button>
-            <button className="btn small ghost" style={{ flex: 1 }} disabled={isMe} onClick={() => onPatch({ role: m.role === "admin" ? "member" : "admin" })}>
-              {m.role === "admin" ? "관리자 해제" : "관리자 지정"}
-            </button>
-          </div>
+          <button className="btn small ghost" disabled={isMe} onClick={() => onPatch(isStaff(m) ? { role: "member", isLeader: false } : { role: "admin", isLeader: true })}>
+            {isStaff(m) ? "운영진 해제" : "운영진 지정"}
+          </button>
+          {isMe && <span className="sm" style={{ textAlign: "center" }}>본인의 운영진 권한은 다른 운영진이 바꿀 수 있어요</span>}
           {!isMe && <button className="btn small danger" onClick={onDelete}>명단에서 삭제</button>}
         </div>
       )}

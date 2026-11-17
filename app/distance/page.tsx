@@ -87,7 +87,7 @@ export default function DistancePage() {
           {preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="선택한 인증 사진" className="photo" />}
         </div>
         <ErrorText msg={err} />
-        {done && <p className="sm" role="status" style={{ margin: 0, textAlign: "center" }}>제출했어요. 관리자가 인정하면 반영돼요.</p>}
+        {done && <p className="sm" role="status" style={{ margin: 0, textAlign: "center" }}>제출했어요. 운영진이 인정하면 반영돼요.</p>}
         <button className="btn" disabled={!valid || busy}>{busy ? "제출 중…" : "제출"}</button>
       </form>
 

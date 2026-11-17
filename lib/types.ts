@@ -12,7 +12,18 @@ export interface Member {
   userId: string | null;
 }
 
-export type EventKind = "run" | "event";
+export type EventKind = "run" | "event" | "social" | "etc";
+
+export const EVENT_KINDS: { value: EventKind; label: string }[] = [
+  { value: "run", label: "러닝" },
+  { value: "event", label: "행사·대회" },
+  { value: "social", label: "친목" },
+  { value: "etc", label: "기타" },
+];
+export const kindLabel = (k: EventKind) => EVENT_KINDS.find((x) => x.value === k)?.label ?? "기타";
+
+/** 크루장·관리자를 하나로 묶어 부르는 이름 */
+export const isStaff = (m: { role: Role; isLeader: boolean }) => m.role === "admin" || m.isLeader;
 
 export interface CrewEvent {
   id: string;
@@ -53,6 +64,7 @@ export interface RaceRecord {
 export interface Settings {
   minAttendance: number; // 월 최소 참석 횟수
   distanceTarget: number; // 월 거리 인증 목표(km)
+  instagram: string; // 크루 인스타그램 계정(@ 없이), 비어 있으면 미등록
 }
 
 export interface Session {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { kindLabel } from "@/lib/types";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, MonthNav, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
@@ -18,6 +19,8 @@ function Schedule() {
   const [tab, setTab] = useState<"cal" | "rank">(sp.get("tab") === "rank" ? "rank" : "cal");
   const [month, setMonth] = useState(monthStr());
   const [sel, setSel] = useState(todayStr());
+  const [period, setPeriod] = useState<"month" | "year">("month");
+  const yearly = tab === "rank" && period === "year";
 
   const changeMonth = (d: number) => {
     const next = shiftMonth(month, d);
@@ -28,11 +31,12 @@ function Schedule() {
   const { data, error } = useLoad(async () => {
     const { from, to } = monthRange(month);
     const { y } = parseMonth(month);
-    const [members, events, att, yearDist] = await Promise.all([
-      api.listMembers(), api.listEvents(from, to), api.listAttendance({ from, to }),
+    const [members, events, yearAtt, yearDist] = await Promise.all([
+      api.listMembers(), api.listEvents(from, to), api.listAttendance({ from: `${y}-01-01`, to: `${y}-12-31` }),
       api.listDistance({ fromMonth: `${y}-01`, toMonth: `${y}-12`, status: "approved" }),
     ]);
-    return { members: members.filter((m) => m.status === "active"), events, att, yearDist };
+    const att = yearAtt.filter((a) => a.date >= from && a.date <= to);
+    return { members: members.filter((m) => m.status === "active"), events, att, yearAtt, yearDist };
   }, [month]);
 
   return (
@@ -43,7 +47,8 @@ function Schedule() {
       ) : undefined}
     >
       <Tabs value={tab} onChange={setTab} options={[{ value: "cal", label: "크루 일정" }, { value: "rank", label: "참석 랭킹" }]} />
-      <MonthNav month={month} label={monthLabel(month)} onChange={changeMonth} />
+      {tab === "rank" && <Tabs small value={period} onChange={setPeriod} options={[{ value: "month", label: "월간" }, { value: "year", label: "연간" }]} />}
+      <MonthNav month={month} label={yearly ? `${parseMonth(month).y}년` : monthLabel(month)} onChange={(d) => changeMonth(yearly ? d * 12 : d)} />
       <ErrorText msg={error} />
       {!data ? <Loading /> : tab === "cal" ? (() => {
         const { y, m } = parseMonth(month);
@@ -78,7 +83,7 @@ function Schedule() {
             )}
             {dayEvents.map((e) => (
               <Link key={e.id} href={`/event?id=${encodeURIComponent(e.id)}`} className="card stack" style={{ gap: 8 }}>
-                <span><span className={e.kind === "run" ? "bg" : "bg gray"}>{e.kind === "run" ? "러닝" : "행사 · 대회"}</span></span>
+                <span><span className={e.kind === "run" ? "bg" : "bg gray"}>{kindLabel(e.kind)}</span></span>
                 <div className="h2">{e.title}</div>
                 <div className="row" style={{ minHeight: 36, borderTop: "1px solid var(--line-soft)", borderBottom: 0 }}>
                   <span className="sm">참석</span>
@@ -90,17 +95,19 @@ function Schedule() {
         );
       })() : (() => {
         const { y, m } = parseMonth(month);
+        const att = yearly ? data.yearAtt : data.att;
+        const dist = yearly ? data.yearDist : data.yearDist.filter((d) => d.month === month);
         const rows = data.members.map((mem) => ({
           m: mem,
-          att: data.att.filter((a) => a.memberId === mem.id).length,
-          dist: data.yearDist.filter((d) => d.memberId === mem.id).reduce((s, d) => s + d.km, 0),
+          att: att.filter((a) => a.memberId === mem.id).length,
+          dist: dist.filter((d) => d.memberId === mem.id).reduce((s, d) => s + d.km, 0),
         })).sort((a, b) => b.att - a.att || b.dist - a.dist || a.m.name.localeCompare(b.m.name, "ko"));
 
         return (
           <>
-            <p className="sm" style={{ margin: 0 }}>{m}월 참석 · {y}년 누적 거리 · 모든 회원이 조회할 수 있어요</p>
-            <section className="card" style={{ paddingTop: 4, paddingBottom: 4 }} aria-label="참석 랭킹">
-              <div className="rr th"><span>순위</span><span>이름</span><span>참석</span><span>누적 거리</span></div>
+            <p className="sm" style={{ margin: 0 }}>{yearly ? `${y}년 누적 참석 · 거리` : `${m}월 참석 · 거리`} · 모든 회원이 조회할 수 있어요</p>
+            <section className="card" style={{ paddingTop: 4, paddingBottom: 4 }} aria-label={yearly ? "연간 참석 랭킹" : "월간 참석 랭킹"}>
+              <div className="rr th"><span>순위</span><span>이름</span><span>참석</span><span>{yearly ? "연간 거리" : "월간 거리"}</span></div>
               {rows.map((r, i) => (
                 <div className={r.m.id === me.id ? "rr mine" : "rr"} key={r.m.id}>
                   <span className="no">{i + 1}</span>

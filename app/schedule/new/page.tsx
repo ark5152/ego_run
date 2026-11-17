@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCrew } from "@/components/crew";
 import { ErrorText, Screen, Tabs } from "@/components/shell";
 import { todayStr } from "@/lib/format";
-import type { EventKind } from "@/lib/types";
+import { EVENT_KINDS, type EventKind } from "@/lib/types";
 
 export default function NewEventPage() {
   return <Suspense><NewEvent /></Suspense>;
@@ -46,7 +46,7 @@ function NewEvent() {
         </div>
         <div className="field">
           <span className="lbl">구분</span>
-          <Tabs value={kind} onChange={setKind} options={[{ value: "run", label: "러닝" }, { value: "event", label: "행사 · 대회" }]} />
+          <Tabs value={kind} onChange={setKind} options={EVENT_KINDS} />
         </div>
         <ErrorText msg={err} />
         <button className="btn" disabled={busy || !title.trim() || !date}>{busy ? "저장 중…" : "저장"}</button>

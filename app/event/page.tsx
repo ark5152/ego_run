@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { kindLabel } from "@/lib/types";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, Screen } from "@/components/shell";
 import { fullDateLabel, sortKo } from "@/lib/format";
@@ -61,7 +62,7 @@ function EventDetail() {
   return (
     <Screen title={isAdmin ? "출석 체크" : "일정"} back tab="/schedule">
       <section className="card stack" style={{ gap: 6 }}>
-        <span><span className={e.kind === "run" ? "bg" : "bg gray"}>{e.kind === "run" ? "러닝" : "행사 · 대회"}</span></span>
+        <span><span className={e.kind === "run" ? "bg" : "bg gray"}>{kindLabel(e.kind)}</span></span>
         <div className="h2">{e.title}</div>
         <div className="sm">{fullDateLabel(e.date)} · 참석 {checked.size}명</div>
       </section>

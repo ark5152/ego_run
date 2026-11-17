@@ -10,12 +10,32 @@
   --card: #ffffff;
   --danger: #b3261e;
   --nav-h: 64px;
+  --outer: #ece7e4;
+  --field: #ffffff;
+  --radio: #d9d0cc;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --accent: #d0473d;
+  --accent-deep: #a12e27;
+  --accent-soft: #3b1f1c;
+  --ink: #f1ecea;
+  --muted: #a8a09c;
+  --line: #3a3230;
+  --line-soft: #2b2422;
+  --ground: #141111;
+  --card: #1e1918;
+  --danger: #ff7b72;
+  --outer: #0b0909;
+  --field: #241e1d;
+  --radio: #5a504d;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: #ece7e4;
+  background: var(--outer);
   color: var(--ink);
   font-family: "Noto Sans KR", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -57,7 +77,7 @@ button { cursor: pointer; }
   max-width: 480px; margin: 0 auto;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: #fff; border-top: 1px solid var(--line);
+  background: var(--card); border-top: 1px solid var(--line);
   display: flex;
 }
 .ni {
@@ -97,10 +117,10 @@ button { cursor: pointer; }
 }
 .btn:active { background: var(--accent-deep); }
 .btn:disabled { opacity: .45; }
-.btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+.btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
 .btn.ghost:active { background: var(--line-soft); }
 .btn.small { height: 36px; width: auto; padding: 0 14px; font-size: 14px; }
-.btn.danger { background: #fff; color: var(--danger); border: 1px solid var(--line); }
+.btn.danger { background: var(--card); color: var(--danger); border: 1px solid var(--line); }
 
 .row {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -126,7 +146,7 @@ button { cursor: pointer; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .lbl { font-size: 12.5px; color: var(--muted); }
 .inp {
-  width: 100%; height: 46px; border: 1px solid var(--line); background: #fff; border-radius: 12px;
+  width: 100%; height: 46px; border: 1px solid var(--line); background: var(--field); border-radius: 12px;
   font-size: 15px; padding: 0 14px; color: var(--ink);
 }
 .inp::placeholder { color: var(--muted); }
@@ -138,7 +158,7 @@ select.inp { appearance: none; background-image: none; }
   position: relative; display: flex; align-items: center;
 }
 .sort select {
-  height: 42px; border: 1px solid var(--line); background: #fff; border-radius: 12px; font-size: 14px;
+  height: 42px; border: 1px solid var(--line); background: var(--field); border-radius: 12px; font-size: 14px;
   padding: 0 34px 0 14px; appearance: none;
 }
 .sort .ic { position: absolute; right: 10px; pointer-events: none; }
@@ -184,8 +204,8 @@ select.inp { appearance: none; background-image: none; }
   width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; padding: 0; text-align: left;
 }
 .rd:last-child { border-bottom: 0; }
-.rd i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d9d0cc; flex: none; }
-.rd[aria-checked="true"] i { border: 6px solid var(--accent); background: #fff; }
+.rd i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--radio); flex: none; }
+.rd[aria-checked="true"] i { border: 6px solid var(--accent); background: var(--card); }
 .ck i { border-radius: 6px; display: flex; align-items: center; justify-content: center; }
 .ck[aria-checked="true"] i { border: 0; background: var(--accent); }
 .ck[aria-checked="true"] i::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translate(1px, -1px); }
@@ -217,7 +237,7 @@ select.inp { appearance: none; background-image: none; }
 .brand-logo { height: 21px; width: auto; display: block; }
 .me-chip {
   display: inline-flex; align-items: center; gap: 8px; max-width: 50%;
-  height: 40px; padding: 0 12px 0 4px; border: 1px solid var(--line); border-radius: 20px; background: #fff;
+  height: 40px; padding: 0 12px 0 4px; border: 1px solid var(--line); border-radius: 20px; background: var(--card);
 }
 .me-chip:active { background: var(--line-soft); }
 .me-chip .av {
@@ -233,3 +253,30 @@ select.inp { appearance: none; background-image: none; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center;
 }
 .hero p { margin: 0; font-size: 17px; font-weight: 400; letter-spacing: .3px; font-style: italic; line-height: 1.35; }
+
+/* ── 출석부 달력: 날짜 밑 참여 인원 ── */
+.cal.ac button { height: 54px; flex-direction: column; gap: 1px; border-radius: 10px; }
+.cal.ac button i { font-size: 15px; line-height: 1.2; }
+.cal.ac button small { font-size: 11px; line-height: 1.2; min-height: 13px; color: var(--accent); font-weight: 700; }
+.cal.ac button:not(.ev) small { color: var(--muted); }
+.cal.ac button.s { background: var(--accent); }
+.cal.ac button.s::before { display: none; }
+.cal.ac button.s small { color: #fff; }
+.cal.ac button.today i { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── 더보기: 버튼형 행, 설치 안내, 스위치 ── */
+.row.plain { width: 100%; border: 0; border-bottom: 1px solid var(--line-soft); background: none; padding: 0; text-align: left; color: inherit; }
+.card .row.plain:last-child { border-bottom: 0; }
+.guide { font-size: 14px; padding: 4px 0 12px; border-bottom: 1px solid var(--line-soft); }
+.guide p { margin: 0; color: var(--muted); }
+.guide ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.sw { width: 46px; height: 28px; border-radius: 14px; background: var(--line); position: relative; transition: background .2s; flex: none; }
+.sw i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+[aria-checked="true"] > .sw { background: var(--accent); }
+[aria-checked="true"] > .sw i { transform: translateX(18px); }
+.confirm { display: flex; flex-direction: column; gap: 10px; background: var(--accent-soft); border-radius: 12px; padding: 12px; font-size: 14px; }
+.confirm .acts { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* 다크 모드: 로고는 밝은 빨강으로 */
+:root[data-theme="dark"] .brand-logo { filter: brightness(1.25) saturate(1.05); }
+:root[data-theme="dark"] .hero { background: linear-gradient(135deg, #8e2822 0%, #4f1411 100%); }

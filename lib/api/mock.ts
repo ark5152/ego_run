@@ -51,6 +51,7 @@ function seed(): Db {
     if (w === 4) events.push({ id: `e-${dateStr(d)}`, date: dateStr(d), title: "목요 인터벌벙(러닝)", kind: "run" });
   }
   events.push({ id: "e-race-1128", date: "2026-11-28", title: "가을 마라톤 단체 참가", kind: "event" });
+  events.push({ id: "e-social-1121", date: "2026-11-21", title: "11월 크루 회식", kind: "social" });
 
   const today = dateStr(new Date());
   const past = events.filter((e) => e.date <= today && e.kind === "run");
@@ -132,7 +133,7 @@ function seed(): Db {
     R("m-soyul", "10k", "00:52:40", "한강 10K", "2026-06-07"),
   ];
 
-  return { members, settings: { minAttendance: 1, distanceTarget: 30 }, events, attendance, distance, races, signedIn: true };
+  return { members, settings: { minAttendance: 1, distanceTarget: 30, instagram: "" }, events, attendance, distance, races, signedIn: true };
 }
 
 async function toDataUrl(file: File, max: number): Promise<string> {
@@ -206,7 +207,7 @@ export function createMockApi(): Api {
       save();
     },
 
-    async getSettings() { return clone(load().settings); },
+    async getSettings() { const s = clone(load().settings); return { ...s, instagram: s.instagram ?? "" }; },
     async updateSettings(s) { load().settings = { ...s }; save(); },
 
     async listEvents(from, to) {

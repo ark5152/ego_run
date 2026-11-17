@@ -17,7 +17,8 @@ create table public.members (
 create table public.settings (
   id               int primary key default 1 check (id = 1),
   min_attendance   int not null default 1 check (min_attendance >= 0),
-  distance_target  numeric(6,1) not null default 30 check (distance_target >= 0)
+  distance_target  numeric(6,1) not null default 30 check (distance_target >= 0),
+  instagram        text not null default ''
 );
 insert into public.settings (id) values (1);
 
@@ -25,7 +26,7 @@ create table public.events (
   id          uuid primary key default gen_random_uuid(),
   date        date not null,
   title       text not null,
-  kind        text not null default 'run' check (kind in ('run','event')),
+  kind        text not null default 'run' check (kind in ('run','event','social','etc')),
   created_at  timestamptz not null default now()
 );
 create index on public.events (date);

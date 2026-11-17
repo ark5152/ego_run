@@ -59,7 +59,7 @@ export default function HomePage() {
               </div>
               <Link href="/distance" className="btn">거리 제출</Link>
               <div className="sm" style={{ textAlign: "center" }}>
-                {pendingKm > 0 ? `${km(pendingKm)} 검토 중 · ` : ""}관리자가 인정하면 반영돼요
+                {pendingKm > 0 ? `${km(pendingKm)} 검토 중 · ` : ""}운영진이 인정하면 반영돼요
               </div>
             </section>
 

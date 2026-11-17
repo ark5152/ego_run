@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { getApi } from "@/lib/api";
 import type { Api, Member, Session, Settings } from "@/lib/types";
 import { LoginScreen } from "./login";
+import "./device"; // 홈 화면 추가 이벤트를 앱 시작 시점부터 받기 위해
 import { JoinScreen, PendingScreen } from "./join";
 
 interface Crew {
