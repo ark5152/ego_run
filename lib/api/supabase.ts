@@ -53,7 +53,15 @@ export function createSupabaseApi(url: string, key: string): Api {
   /** 이름+비밀번호 확인은 서버 함수(pin-auth)가 하고, 성공하면 세션을 돌려받아 로그인 */
   const pinAuth = async (body: Record<string, string>) => {
     const { data, error } = await sb.functions.invoke("pin-auth", { body });
-    if (error) throw new Error("서버에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요.");
+    if (error) {
+      // 원인을 알 수 있게 상태 코드를 함께 보여줌 (404: 함수 없음, 401: Verify JWT 켜짐, 5xx: 함수 오류)
+      const status = (error as { context?: Response }).context?.status;
+      const hint = status === 404 ? "서버 기능(pin-auth)을 찾지 못했어요"
+        : status === 401 || status === 403 ? "서버 기능의 Verify JWT 설정을 꺼 주세요"
+        : status && status >= 500 ? "서버 기능 실행 중 오류가 났어요"
+        : "서버에 연결하지 못했어요";
+      throw new Error(`${hint}. 잠시 뒤 다시 시도해 주세요. (${status ? `코드 ${status}` : error.name ?? "연결 오류"})`);
+    }
     if (!data?.ok) throw new Error(data?.error ?? "요청에 실패했어요.");
     if (data.session) check(await sb.auth.setSession(data.session));
   };
