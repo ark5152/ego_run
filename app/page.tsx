@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCrew, useLoad } from "@/components/crew";
-import { ErrorText, Loading, Screen } from "@/components/shell";
+import { BrandHeader, ErrorText, Loading, Screen } from "@/components/shell";
 import { hms, km, monthLabel, monthStr, parseMonth, shiftMonth } from "@/lib/format";
 
 export default function HomePage() {
@@ -19,8 +19,18 @@ export default function HomePage() {
   }, [me.id]);
 
   return (
-    <Screen title="홈">
-      <div className="section-title" style={{ marginTop: 0 }}>{monthLabel(month)}</div>
+    <Screen title="홈" header={<BrandHeader />}>
+      <section className="hero" aria-label="인사">
+        <img className="hero-mark" src="/ego-logo-white.png" alt="" aria-hidden="true" width={720} height={307} />
+        <div className="hero-top">{monthLabel(month)}</div>
+        <p className="hero-name"><b>{me.name}</b>님,</p>
+        <p className="hero-msg">오늘도 함께 달려요!</p>
+        <div className="hero-tags">
+          {me.isLeader && <span className="ht">크루장</span>}
+          {me.role === "admin" && <span className="ht">관리자</span>}
+          {!me.isLeader && me.role !== "admin" && <span className="ht">크루원</span>}
+        </div>
+      </section>
       <ErrorText msg={error} />
       {!data ? <Loading /> : (() => {
         const approved = data.dist.filter((d) => d.status === "approved");

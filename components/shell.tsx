@@ -15,9 +15,11 @@ const TABS: { href: string; label: string; icon: IconName }[] = [
 ];
 
 export function Screen({
-  title, back, right, children, tab,
+  title, back, right, children, tab, header,
 }: {
   title: string;
+  /** 기본 제목 바 대신 보여줄 머리글(홈의 로고 머리글 등) */
+  header?: ReactNode;
   back?: boolean;
   right?: ReactNode;
   children: ReactNode;
@@ -27,7 +29,7 @@ export function Screen({
   const router = useRouter();
   return (
     <div className="shell">
-      <header className="hd">
+      {header ?? <header className="hd">
         <div className="side">
           {back && (
             <button className="icon-btn" aria-label="뒤로" onClick={() => router.back()}>
@@ -37,7 +39,7 @@ export function Screen({
         </div>
         <h1>{title}</h1>
         <div className="side">{right}</div>
-      </header>
+      </header>}
       <main className="bd">{children}</main>
       <TabBar active={tab} />
     </div>
@@ -93,4 +95,18 @@ export function Loading() {
 
 export function ErrorText({ msg }: { msg: string | null }) {
   return msg ? <p className="err" role="alert">{msg}</p> : null;
+}
+
+/** 홈 상단: 크루 로고 + 내 이름 배지 */
+export function BrandHeader() {
+  const { me } = useCrew();
+  return (
+    <header className="brand">
+      <img className="brand-logo" src="/ego-logo.png" alt="EGO Running Crew" width={720} height={307} />
+      <Link href="/more" className="me-chip" aria-label={`내 정보: ${me.name}`}>
+        <span className="av" aria-hidden="true">{me.name.slice(-2)}</span>
+        <span className="nm">{me.name}</span>
+      </Link>
+    </header>
+  );
 }
