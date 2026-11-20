@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "./icons";
 import { useCrew } from "./crew";
+import { badgeImage } from "@/lib/types";
 
 const TABS: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "홈", icon: "home" },
@@ -104,7 +105,10 @@ export function BrandHeader() {
     <header className="brand">
       <img className="brand-logo" src="/ego-logo.png" alt="EGO" width={800} height={140} />
       <Link href="/more" className="me-chip" aria-label={`내 정보: ${me.name}`}>
-        <span className="av" aria-hidden="true">{me.name.slice(-2)}</span>
+        {me.badgeId
+          /* eslint-disable-next-line @next/next/no-img-element */
+          ? <span className="av icon" aria-hidden="true"><img className="px" src={badgeImage(me.badgeId)} alt="" width={256} height={256} /></span>
+          : <span className="av" aria-hidden="true">{me.name.slice(-2)}</span>}
         <span className="nm">{me.name}</span>
       </Link>
     </header>

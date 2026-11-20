@@ -1,12 +1,13 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type {
-  Announcement, Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, SecretKind, Settings,
+  Announcement, Api, AttendanceRow, Badge, CrewEvent, DistanceSubmission, Member, RaceRecord, SecretKind, Settings,
 } from "../types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const toMember = (r: any): Member => ({
   id: r.id, name: r.name, gender: r.gender, role: r.role, isLeader: r.is_leader, status: r.status, userId: r.user_id,
+  badgeId: r.badge_id ?? null,
 });
 const toEvent = (r: any): CrewEvent => ({ id: r.id, date: r.date, title: r.title, kind: r.kind });
 const toDistance = (r: any): DistanceSubmission => ({
@@ -205,6 +206,22 @@ export function createSupabaseApi(url: string, key: string): Api {
     },
     async deleteAnnouncement(id) {
       check(await sb.from("announcements").delete().eq("id", id));
+    },
+
+    async claimBadges() {
+      const rows = (check(await sb.rpc("claim_badges")) ?? []) as any[];
+      return rows.map((r): Badge => ({ id: r.id, name: r.name, description: r.description }));
+    },
+    async markBadgesSeen(ids) {
+      if (ids.length) check(await sb.rpc("mark_badges_seen", { p_ids: ids }));
+    },
+    async myBadges() {
+      const [rows, total] = await Promise.all([sb.rpc("my_badges"), sb.rpc("badge_total")]);
+      const earned = ((check(rows) ?? []) as any[]).map((r): Badge => ({ id: r.id, name: r.name, description: r.description, earnedAt: r.earned_at }));
+      return { earned, total: Number(check(total) ?? 0) };
+    },
+    async setMyBadge(id) {
+      check(await sb.rpc("set_my_badge", { p_id: id }));
     },
 
     async listRaceRecords(q) {

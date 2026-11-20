@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { countsAsAttendance, kindLabel, SOCIAL_PER_MONTH } from "@/lib/types";
+import { badgeImage, countsAsAttendance, kindLabel, SOCIAL_PER_MONTH } from "@/lib/types";
 import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, MonthNav, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
@@ -121,7 +121,13 @@ function Schedule() {
               {rows.map((r, i) => (
                 <div className={r.m.id === me.id ? "rr mine" : "rr"} key={r.m.id}>
                   <span className="no">{i + 1}</span>
-                  <span>{r.m.name}{r.m.id === me.id && <span className="tg me">나</span>}</span>
+                  <span className="rname">
+                    {r.m.badgeId
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      ? <img className="px ricon" src={badgeImage(r.m.badgeId)} alt="" width={256} height={256} />
+                      : <span className="ricon" aria-hidden="true" />}
+                    {r.m.name}{r.m.id === me.id && <span className="tg me">나</span>}
+                  </span>
                   <b>{r.att}회</b>
                   <b>{km(r.dist)}</b>
                 </div>

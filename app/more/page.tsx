@@ -97,6 +97,7 @@ export default function MorePage() {
           </div>
         )}
 
+        <Item href="/badges" label="아이콘 선택" />
         <Item href="/notices" label="공지사항" />
         <Item href="/password" label="비밀번호 변경" />
 

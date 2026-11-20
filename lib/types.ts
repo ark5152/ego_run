@@ -10,6 +10,26 @@ export interface Member {
   isLeader: boolean; // 크루장 태그
   status: MemberStatus;
   userId: string | null;
+  badgeId: string | null; // 대표 아이콘(없으면 null)
+}
+
+/** 획득한 아이콘. 이름·설명은 얻은 뒤에만 서버에서 받음 */
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  earnedAt?: string;
+}
+
+export const badgeImage = (id: string) => `/badges/${id}.png`;
+
+/** "한복을", "나무를" — 이름 끝 받침에 맞는 조사 */
+export function objParticle(name: string): string {
+  const ch = name.trim().slice(-1);
+  const code = ch.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) return (code - 0xac00) % 28 ? "을" : "를";
+  if (code >= 0x3131 && code <= 0x314e) return "을";
+  return "을(를)";
 }
 
 export type EventKind = "run" | "event" | "social" | "etc";
@@ -140,6 +160,13 @@ export interface Api {
   /** 만든 공지의 id 를 돌려줌 */
   createAnnouncement(input: { title: string; body: string; popupUntil: string }): Promise<string>;
   deleteAnnouncement(id: string): Promise<void>;
+
+  // badges(아이콘)
+  /** 새로 조건을 채운 아이콘을 지급하고, 아직 팝업을 안 본 아이콘을 돌려줌 */
+  claimBadges(): Promise<Badge[]>;
+  markBadgesSeen(ids: string[]): Promise<void>;
+  myBadges(): Promise<{ earned: Badge[]; total: number }>;
+  setMyBadge(id: string | null): Promise<void>;
 
   // races
   listRaceRecords(q: { year?: number; memberId?: string }): Promise<RaceRecord[]>;

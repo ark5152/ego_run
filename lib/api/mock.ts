@@ -31,7 +31,21 @@ interface Db {
   currentUid?: string | null;
   secrets?: Record<string, DemoSecret>;
   announcements?: Announcement[];
+  myBadges?: { id: string; earnedAt: string; seen: boolean }[];
 }
+
+/*
+ * 데모 아이콘: 실제 조건은 서버에만 있어 데모에는 넣지 않음(이 코드는 누구나 내려받을 수 있음).
+ * 데모에서는 예시 아이콘 몇 개만 이미 얻은 것으로 보여 줌.
+ */
+const DEMO_TOTAL = 25;
+const DEMO_BADGES: Record<string, { name: string; description: string }> = {
+  "b892153ff": { name: "한복", description: "새해 첫날에 러닝을 했어요." },
+  "b991270bd": { name: "맥주", description: "이구역 친목왕" },
+  "b34155d47": { name: "크리스마스 트리", description: "크리스마스에 러닝을 했어요." },
+  "bafdfbdd5": { name: "FULL 메달", description: "FULL 완주 축하합니다!" },
+};
+const DEMO_IDS = Object.keys(DEMO_BADGES);
 
 const KEY = "ego-demo-v1";
 const DEMO_UID = "demo-user";
@@ -40,15 +54,15 @@ const nid = (p: string) => `${p}-${Date.now().toString(36)}-${(seq++).toString(3
 
 function seed(): Db {
   const M = (id: string, name: string, gender: "M" | "F", extra: Partial<Member> = {}): Member => ({
-    id, name, gender, role: "member", isLeader: false, status: "active", userId: null, ...extra,
+    id, name, gender, role: "member", isLeader: false, status: "active", userId: null, badgeId: null, ...extra,
   });
   const members: Member[] = [
     M("m-seojun", "김서준", "M", { role: "admin", isLeader: true, userId: DEMO_UID }),
-    M("m-jiho", "박지호", "M"),
-    M("m-minjae-c", "최민재", "M"),
-    M("m-hayun", "이하윤", "F"),
+    M("m-jiho", "박지호", "M", { badgeId: DEMO_IDS[3] }),
+    M("m-minjae-c", "최민재", "M", { badgeId: DEMO_IDS[1] }),
+    M("m-hayun", "이하윤", "F", { badgeId: DEMO_IDS[2] }),
     M("m-minjae-j", "정민재", "M"),
-    M("m-yuna", "정유나", "F"),
+    M("m-yuna", "정유나", "F", { badgeId: DEMO_IDS[0] }),
     M("m-yujin", "최유진", "F"),
     M("m-daon", "강다온", "M"),
     M("m-taeyang", "오태양", "M"),
@@ -171,6 +185,10 @@ export function createMockApi(): Api {
     } catch { /* 저장소를 못 쓰면 메모리로만 */ }
     if (!db) db = seed();
     // 예전 데모 데이터 → 비밀번호 로그인 방식으로 옮기기
+    if (db.members.some((m) => m.badgeId === undefined)) {
+      const sample: Record<string, string> = { "m-jiho": DEMO_IDS[3], "m-hayun": DEMO_IDS[2], "m-minjae-c": DEMO_IDS[1], "m-yuna": DEMO_IDS[0] };
+      for (const m of db.members) if (m.badgeId === undefined) m.badgeId = sample[m.id] ?? null;
+    }
     if (!db.secrets) {
       db.secrets = {};
       for (const m of db.members) {
@@ -274,7 +292,7 @@ export function createMockApi(): Api {
     async getMe() { const m = me(); return m ? clone(m) : null; },
     async listMembers() { return clone(load().members); },
     async addMember({ name, gender }) {
-      load().members.push({ id: nid("m"), name, gender, role: "member", isLeader: false, status: "unclaimed", userId: null });
+      load().members.push({ id: nid("m"), name, gender, role: "member", isLeader: false, status: "unclaimed", userId: null, badgeId: null });
       save();
     },
     async updateMember(id, patch) {
@@ -297,6 +315,32 @@ export function createMockApi(): Api {
       if (!m) return;
       if (approve) m.status = "active"; else { delete load().secrets![m.id]; m.status = "unclaimed"; m.userId = null; }
       save();
+    },
+
+    async claimBadges() {
+      const d = load();
+      if (!d.myBadges) {
+        const now = new Date().toISOString();
+        // 처음 열면: 2개는 이미 얻은 상태, 2개는 새로 얻어 팝업으로 보여 줌
+        d.myBadges = DEMO_IDS.map((id, i) => ({ id, earnedAt: now, seen: i < 2 }));
+        save();
+      }
+      return d.myBadges.filter((b) => !b.seen).map((b) => ({ id: b.id, ...DEMO_BADGES[b.id] }));
+    },
+    async markBadgesSeen(ids) {
+      const d = load();
+      for (const b of d.myBadges ?? []) if (ids.includes(b.id)) b.seen = true;
+      save();
+    },
+    async myBadges() {
+      const d = load();
+      return { earned: (d.myBadges ?? []).map((b) => ({ id: b.id, ...DEMO_BADGES[b.id], earnedAt: b.earnedAt })), total: DEMO_TOTAL };
+    },
+    async setMyBadge(id) {
+      const m = me();
+      if (!m) throw new Error("로그인이 필요해요");
+      if (id && !(load().myBadges ?? []).some((b) => b.id === id)) throw new Error("아직 얻지 못한 아이콘이에요");
+      m.badgeId = id; save();
     },
 
     async getSettings() { const s = clone(load().settings); return { ...s, instagram: s.instagram ?? "" }; },
