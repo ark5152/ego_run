@@ -318,3 +318,35 @@ textarea.inp.area { height: auto; padding: 12px 14px; resize: vertical; line-hei
 }
 .deadline small { display: block; font-weight: 500; font-size: 13px; }
 .deadline .btn { width: auto; flex: none; height: 38px; padding: 0 12px; font-size: 14px; background: var(--danger); }
+
+/* ── 운영 현황(운영진 전용) ── */
+.dash-card { padding: 0; overflow: hidden; }
+.dash-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 8px 10px 16px; border-bottom: 1px solid var(--line-soft); }
+.dash-mon { display: flex; align-items: center; gap: 2px; font-size: 14px; }
+.dash-mon .icon-btn { width: 32px; height: 32px; }
+.dash-mon .icon-btn:disabled { opacity: .3; }
+.dash { display: grid; grid-template-columns: 1fr 1fr; }
+.dash-cell {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; text-align: left; min-width: 0;
+  border: 0; background: none; color: inherit; border-bottom: 1px solid var(--line-soft); font: inherit;
+}
+.dash-cell:nth-child(odd) { border-right: 1px solid var(--line-soft); }
+.dash-cell:active, .dash-cell.on { background: var(--line-soft); }
+.dash-label { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); }
+.dash-label.warn .ic { color: #d99a1e; }
+.dash-label.info .ic { color: #4a7bd0; }
+.dash-label.accent .ic { color: var(--accent); }
+.dash-val { font-size: 13px; color: var(--muted); }
+.dash-val b { font-size: 30px; color: var(--ink); font-variant-numeric: tabular-nums; margin-right: 2px; }
+.dash-sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-list { padding: 8px 16px 10px; border-bottom: 1px solid var(--line-soft); background: var(--line-soft); }
+.dash-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; font-size: 14.5px; border-bottom: 1px dashed var(--line); }
+.dash-row:last-child { border-bottom: 0; }
+.dash-row b { font-weight: 500; color: var(--muted); font-size: 13.5px; }
+.dash-row b.red { color: var(--danger); font-weight: 700; }
+.dash-copy {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px;
+  border: 0; border-bottom: 1px solid var(--line-soft); background: none; color: var(--accent); font-weight: 700; font-size: 15px;
+}
+.dash-copy:active { background: var(--line-soft); }
+.dash-foot { padding: 10px 16px 12px; font-size: 12.5px; color: var(--muted); }

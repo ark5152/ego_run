@@ -6,9 +6,10 @@ import { useCrew, useLoad } from "@/components/crew";
 import { BrandHeader, ErrorText, Loading, Screen, Tabs } from "@/components/shell";
 import { distanceDeadline, shortDayLabel, hms, km, monthStr, parseMonth } from "@/lib/format";
 import { countsAsAttendance } from "@/lib/types";
+import { AdminDashboard } from "@/components/admin-dashboard";
 
 export default function HomePage() {
-  const { api, me, settings } = useCrew();
+  const { api, me, settings, isAdmin } = useCrew();
   const month = monthStr();
   const [period, setPeriod] = useState<"month" | "year">("month");
 
@@ -28,6 +29,7 @@ export default function HomePage() {
         <p>Everyone GO</p>
         <p>Everywhere GO</p>
       </section>
+      {isAdmin && <AdminDashboard />}
       <ErrorText msg={error} />
       {!data ? <Loading /> : (() => {
         const approved = data.dist.filter((d) => d.status === "approved");

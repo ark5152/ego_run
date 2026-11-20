@@ -11,6 +11,10 @@ const P = {
   plus: "M12 5v14 M5 12h14",
   trash: "M5 7h14 M10 11v6 M14 11v6 M7 7l1 13h8l1-13 M9 7V4h6v3",
   camera: "M4 8h4l2-3h4l2 3h4v11H4z M12 17a3.5 3.5 0 100-7 3.5 3.5 0 000 7",
+  warn: "M12 4l9 16H3z M12 10v4 M12 17v.5",
+  userAdd: "M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7 M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6 M18 8v6 M15 11h6",
+  inbox: "M4 13l2-8h12l2 8v6H4z M4 13h5l1 2h4l1-2h5",
+  copy: "M8 8h11v12H8z M5 16V4h11",
 } as const;
 
 export type IconName = keyof typeof P;
