@@ -9,6 +9,7 @@ import {
   canPromptInstall, getTheme, isInstalled, isIos, onInstallChange, promptInstall, setTheme, type Theme,
 } from "@/components/device";
 import { isStaff } from "@/lib/types";
+import { canExitDemo, exitDemo } from "@/lib/api";
 
 function Item({ href, label, badge }: { href: string; label: string; badge?: number }) {
   return (
@@ -125,6 +126,9 @@ export default function MorePage() {
         <button className="btn danger" onClick={() => { try { localStorage.removeItem("ego-demo-v1"); } catch { /* */ } location.href = "/"; }}>
           데모 데이터 초기화
         </button>
+      )}
+      {api.mode === "demo" && canExitDemo() && (
+        <button className="btn" onClick={exitDemo}>데모 종료 (실제 앱으로)</button>
       )}
     </Screen>
   );
