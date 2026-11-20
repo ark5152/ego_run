@@ -1,5 +1,5 @@
 import type {
-  Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, Settings,
+  Announcement, Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, Settings,
 } from "../types";
 import { dateStr } from "../format";
 import { SOCIAL_PER_MONTH, secretError, type SecretKind } from "../types";
@@ -30,6 +30,7 @@ interface Db {
   signedIn?: boolean; // 예전 데모 데이터 호환
   currentUid?: string | null;
   secrets?: Record<string, DemoSecret>;
+  announcements?: Announcement[];
 }
 
 const KEY = "ego-demo-v1";
@@ -354,6 +355,32 @@ export function createMockApi(): Api {
       save();
     },
     async getPhotoUrl(path) { return path.startsWith("data:") ? path : null; },
+
+    async listAnnouncements() {
+      const d = load();
+      if (!d.announcements) {
+        const until = new Date(); until.setDate(until.getDate() + 7);
+        d.announcements = [{
+          id: "a-demo-1", title: "11월 정기런 장소 안내",
+          body: "이번 달 월요 정기런은 한강공원 반포지구 달빛광장에서 저녁 8시에 출발해요.\n물과 간단한 간식은 크루에서 준비합니다!",
+          popupUntil: dateStr(until), createdAt: new Date().toISOString(),
+        }];
+        save();
+      }
+      return clone(d.announcements).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    async createAnnouncement({ title, body, popupUntil }) {
+      const d = load();
+      const id = nid("a");
+      d.announcements = [...(d.announcements ?? []), { id, title, body, popupUntil, createdAt: new Date().toISOString() }];
+      save();
+      return id;
+    },
+    async deleteAnnouncement(id) {
+      const d = load();
+      d.announcements = (d.announcements ?? []).filter((a) => a.id !== id);
+      save();
+    },
 
     async listRaceRecords(q) {
       return clone(load().races.filter((r) =>

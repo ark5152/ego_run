@@ -27,7 +27,8 @@ const STATUS = { pending: ["검토 중", "bg gray"], approved: ["인정", "bg"],
 export default function DistancePage() {
   const { api, me, reload: reloadCrew } = useCrew();
   const now = monthStr();
-  const [month, setMonth] = useState(now);
+  // 1일에는 지난달 기록을 인증하는 날이므로 지난달을 먼저 골라 둠
+  const [month, setMonth] = useState(new Date().getDate() === 1 ? shiftMonth(now, -1) : now);
   const [value, setValue] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);

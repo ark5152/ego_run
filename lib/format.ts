@@ -36,6 +36,12 @@ export function monthLabel(ym: string): string {
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
+/** "12월 1일(화)" */
+export function shortDayLabel(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return `${m}월 ${d}일(${WEEK[new Date(y, m - 1, d).getDay()]})`;
+}
+
 export function dayLabel(date: string): string {
   const [y, m, d] = date.split("-").map(Number);
   const w = new Date(y, m - 1, d).getDay();
@@ -89,4 +95,19 @@ export const COURSE_LABEL = { full: "풀코스", half: "하프코스", "10k": "1
 
 export function sortKo<T>(arr: T[], key: (t: T) => string): T[] {
   return [...arr].sort((a, b) => key(a).localeCompare(key(b), "ko"));
+}
+
+/**
+ * 거리 인증 마감 안내: 한 달 기록은 다음 달 1일까지 인증.
+ * 마감 3일 전부터 마감 당일까지만 { 인증할 월, 마감일, 남은 날 } 을 돌려주고, 그 외에는 null
+ * 예) 11월 28~30일 → 11월분, 12/1 마감 / 12월 1일 → 11월분, 오늘 마감
+ */
+export function distanceDeadline(now: Date = new Date()): { month: string; deadline: string; daysLeft: number } | null {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (today.getDate() === 1) {
+    return { month: monthStr(new Date(today.getFullYear(), today.getMonth() - 1, 1)), deadline: dateStr(today), daysLeft: 0 };
+  }
+  const deadline = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const daysLeft = Math.round((deadline.getTime() - today.getTime()) / 86400000);
+  return daysLeft <= 3 ? { month: monthStr(today), deadline: dateStr(deadline), daysLeft } : null;
 }

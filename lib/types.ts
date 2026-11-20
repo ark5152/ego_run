@@ -68,6 +68,14 @@ export interface RaceRecord {
   raceDate: string; // YYYY-MM-DD
 }
 
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  popupUntil: string; // YYYY-MM-DD, 이 날까지 앱을 열면 팝업
+  createdAt: string;
+}
+
 export interface Settings {
   minAttendance: number; // 월 최소 참석 횟수
   distanceTarget: number; // 월 거리 인증 목표(km)
@@ -126,6 +134,12 @@ export interface Api {
   submitDistance(input: { month: string; km: number; photo: File }): Promise<void>;
   reviewDistance(id: string, approve: boolean): Promise<void>;
   getPhotoUrl(path: string): Promise<string | null>;
+
+  // announcements
+  listAnnouncements(): Promise<Announcement[]>;
+  /** 만든 공지의 id 를 돌려줌 */
+  createAnnouncement(input: { title: string; body: string; popupUntil: string }): Promise<string>;
+  deleteAnnouncement(id: string): Promise<void>;
 
   // races
   listRaceRecords(q: { year?: number; memberId?: string }): Promise<RaceRecord[]>;

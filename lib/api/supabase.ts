@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type {
-  Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, SecretKind, Settings,
+  Announcement, Api, AttendanceRow, CrewEvent, DistanceSubmission, Member, RaceRecord, SecretKind, Settings,
 } from "../types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -191,6 +191,20 @@ export function createSupabaseApi(url: string, key: string): Api {
     async getPhotoUrl(path) {
       const { data } = await sb.storage.from("distance-photos").createSignedUrl(path, 600);
       return data?.signedUrl ?? null;
+    },
+
+    async listAnnouncements() {
+      const rows = check(await sb.from("announcements").select("*").order("created_at", { ascending: false }).limit(100)) as any[];
+      return rows.map((r): Announcement => ({ id: r.id, title: r.title, body: r.body, popupUntil: r.popup_until, createdAt: r.created_at }));
+    },
+    async createAnnouncement({ title, body, popupUntil }) {
+      const id = await uid();
+      const me: any = id && check(await sb.from("members").select("id").eq("user_id", id).single());
+      const r: any = check(await sb.from("announcements").insert({ title, body, popup_until: popupUntil, created_by: me?.id ?? null }).select("id").single());
+      return r.id as string;
+    },
+    async deleteAnnouncement(id) {
+      check(await sb.from("announcements").delete().eq("id", id));
     },
 
     async listRaceRecords(q) {

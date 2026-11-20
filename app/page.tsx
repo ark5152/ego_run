@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCrew, useLoad } from "@/components/crew";
 import { BrandHeader, ErrorText, Loading, Screen, Tabs } from "@/components/shell";
-import { hms, km, monthStr, parseMonth } from "@/lib/format";
+import { distanceDeadline, shortDayLabel, hms, km, monthStr, parseMonth } from "@/lib/format";
 import { countsAsAttendance } from "@/lib/types";
 
 export default function HomePage() {
@@ -47,8 +47,21 @@ export default function HomePage() {
           return rs.length ? Math.min(...rs.map((r) => r.seconds)) : null;
         };
 
+        // 마감 3일 전부터, 해당 월을 아직 제출하지 않았으면(반려만 있으면 미제출로 봄) 붉은 안내
+        const due = distanceDeadline();
+        const dueMissing = due && !data.dist.some((d) => d.month === due.month && d.status !== "rejected");
+
         return (
           <>
+            {due && dueMissing && (
+              <section className="deadline" role="alert" aria-label="거리 인증 마감 안내">
+                <span>
+                  {parseMonth(due.month).m}월 거리 인증은 {shortDayLabel(due.deadline)}까지입니다
+                  <small>{due.daysLeft === 0 ? "오늘이 마감이에요!" : `마감까지 ${due.daysLeft}일 남았어요`} · 아직 인증하지 않았어요</small>
+                </span>
+                <Link href="/distance" className="btn">인증하기</Link>
+              </section>
+            )}
             <section className="card stack" aria-label="이번 달 현황">
               <h2 className="h2">이번 달 현황</h2>
               <div className="two">

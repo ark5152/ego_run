@@ -6,6 +6,7 @@ import type { Api, Member, Session, Settings } from "@/lib/types";
 import { LoginScreen } from "./login";
 import "./device"; // 홈 화면 추가 이벤트를 앱 시작 시점부터 받기 위해
 import { NoMemberScreen, PendingScreen, StaffUpgradeScreen } from "./join";
+import { AnnouncementPopup } from "./announcement-popup";
 
 interface Crew {
   api: Api;
@@ -83,6 +84,7 @@ export function CrewProvider({ children }: { children: ReactNode }) {
     }}>
       {demo}
       {children}
+      <AnnouncementPopup api={api} />
     </Ctx.Provider>
   );
 }

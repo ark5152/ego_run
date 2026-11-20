@@ -97,6 +97,7 @@ export default function MorePage() {
           </div>
         )}
 
+        <Item href="/notices" label="공지사항" />
         <Item href="/password" label="비밀번호 변경" />
 
         <button type="button" className="row link plain" role="switch" aria-checked={theme === "dark"} onClick={toggleTheme}>
@@ -112,6 +113,7 @@ export default function MorePage() {
             <Item href="/admin/approvals" label="승인 · 거리 인증 관리" badge={pendingCount} />
             <Item href="/admin/members" label="회원 관리" />
             <Item href="/schedule/new" label="일정 작성" />
+            <Item href="/notices" label="공지 작성" />
             <Item href="/admin/settings" label="크루 설정" />
           </section>
         </>
