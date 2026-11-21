@@ -64,7 +64,7 @@ export function AnnouncementPopup({ api }: { api: Api }) {
         <div className="modal cele">
           <div className="bg">새 아이콘</div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="px cele-img" src={badgeImage(b.id)} alt="" width={256} height={256} />
+          <img className="px cele-img" src={badgeImage(b.id)} alt="" width={88} height={88} />
           <h2 id="badge-title" className="cele-t">🎉 축하합니다!<br />{b.name}{objParticle(b.name)}<br />획득하였습니다</h2>
           {b.description && <p className="cele-c">{b.description}</p>}
           <button className="btn" disabled={busy} onClick={() => done(true)}>대표 아이콘으로 설정</button>

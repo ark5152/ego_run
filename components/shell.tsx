@@ -107,7 +107,7 @@ export function BrandHeader() {
       <Link href="/more" className="me-chip" aria-label={`내 정보: ${me.name}`}>
         {me.badgeId
           /* eslint-disable-next-line @next/next/no-img-element */
-          ? <span className="av icon" aria-hidden="true"><img className="px" src={badgeImage(me.badgeId)} alt="" width={256} height={256} /></span>
+          ? <span className="av icon" aria-hidden="true"><img className="px" src={badgeImage(me.badgeId, 28)} alt="" width={28} height={28} /></span>
           : <span className="av" aria-hidden="true">{me.name.slice(-2)}</span>}
         <span className="nm">{me.name}</span>
       </Link>

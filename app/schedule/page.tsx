@@ -124,7 +124,7 @@ function Schedule() {
                   <span className="rname">
                     {r.m.badgeId
                       /* eslint-disable-next-line @next/next/no-img-element */
-                      ? <img className="px ricon" src={badgeImage(r.m.badgeId)} alt="" width={256} height={256} />
+                      ? <img className="px ricon" src={badgeImage(r.m.badgeId, 22)} alt="" width={22} height={22} />
                       : <span className="ricon" aria-hidden="true" />}
                     {r.m.name}{r.m.id === me.id && <span className="tg me">나</span>}
                   </span>

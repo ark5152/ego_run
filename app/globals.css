@@ -354,11 +354,12 @@ textarea.inp.area { height: auto; padding: 12px 14px; resize: vertical; line-hei
 /* ── 아이콘(배지) ── */
 .px { image-rendering: pixelated; }
 .me-chip .av.icon { background: var(--card); border: 1.5px solid var(--line); padding: 1px; }
+.me-chip .av.icon { padding: 0; }
 .me-chip .av.icon img { width: 28px; height: 28px; display: block; }
 .rname { display: flex; align-items: center; min-width: 0; }
 .ricon { width: 22px; height: 22px; margin-right: 6px; flex: none; display: inline-block; }
 .cele { align-items: center; text-align: center; }
-.cele-img { width: 120px; height: 120px; }
+.cele-img { width: 88px; height: 88px; transform: scale(1.5); margin: 22px 0; }
 .cele-t { margin: 0; font-size: 20px; line-height: 1.45; }
 .cele-c { margin: 0; font-size: 14px; color: var(--muted); background: var(--line-soft); border-radius: 10px; padding: 8px 12px; }
 .cele .btn { width: 100%; }
@@ -368,7 +369,7 @@ textarea.inp.area { height: auto; padding: 12px 14px; resize: vertical; line-hei
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px;
   font-size: 11px; color: var(--muted); font: inherit;
 }
-.bslot img { width: 48px; height: 48px; }
+.bslot img { width: 56px; height: 56px; image-rendering: auto; }
 .bslot .bn { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bslot.on { border: 2px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .bslot.sel { outline: 2px solid var(--ink); outline-offset: 1px; }

@@ -37,7 +37,7 @@ export default function BadgesPage() {
                 className={`bslot${me.badgeId === b.id ? " on" : ""}${cur?.id === b.id && me.badgeId !== b.id ? " sel" : ""}`}
                 onClick={() => setPick(b)} aria-label={`${b.name}${me.badgeId === b.id ? ", 대표 아이콘" : ""}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="px" src={badgeImage(b.id)} alt="" width={256} height={256} />
+                <img className="px" src={badgeImage(b.id)} alt="" width={88} height={88} />
                 <span className="bn">{me.badgeId === b.id ? "대표" : b.name}</span>
               </button>
             ))}

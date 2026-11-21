@@ -21,7 +21,8 @@ export interface Badge {
   earnedAt?: string;
 }
 
-export const badgeImage = (id: string) => `/badges/${id}.png`;
+/** 아이콘 이미지: 기본 88px(팝업·선택 화면), 28px(홈 이름 칸), 22px(참석 랭킹) — 작은 칸은 그 크기로 그린 도트를 써서 선명하게 */
+export const badgeImage = (id: string, size?: 22 | 28) => `/badges/${id}${size ? `-${size}` : ""}.png`;
 
 /** "한복을", "나무를" — 이름 끝 받침에 맞는 조사 */
 export function objParticle(name: string): string {
