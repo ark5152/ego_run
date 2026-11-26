@@ -4,6 +4,8 @@ import type {
 import { dateStr } from "../format";
 import { SOCIAL_PER_MONTH, secretError, type SecretKind } from "../types";
 
+const NEWBIE_START = "2026-12-01"; // 신입 규칙 시작일
+
 /**
  * 데모 모드: Supabase 설정이 없을 때 쓰는 예시 데이터.
  * 브라우저 localStorage 에 저장되며, '김서준(운영진)'으로 로그인된 상태로 시작한다.
@@ -54,7 +56,7 @@ const nid = (p: string) => `${p}-${Date.now().toString(36)}-${(seq++).toString(3
 
 function seed(): Db {
   const M = (id: string, name: string, gender: "M" | "F", extra: Partial<Member> = {}): Member => ({
-    id, name, gender, role: "member", isLeader: false, status: "active", userId: null, badgeId: null, ...extra,
+    id, name, gender, role: "member", isLeader: false, status: "active", userId: null, badgeId: null, approvedAt: null, ...extra,
   });
   const members: Member[] = [
     M("m-seojun", "김서준", "M", { role: "admin", isLeader: true, userId: DEMO_UID }),
@@ -162,7 +164,7 @@ function seed(): Db {
     R("m-soyul", "10k", "00:52:40", "한강 10K", "2026-06-07"),
   ];
 
-  return { members, settings: { minAttendance: 1, distanceTarget: 30, instagram: "" }, events, attendance, distance, races, currentUid: DEMO_UID };
+  return { members, settings: { minAttendance: 1, distanceTarget: 30, instagram: "", newbieStart: NEWBIE_START }, events, attendance, distance, races, currentUid: DEMO_UID };
 }
 
 async function toDataUrl(file: File, max: number): Promise<string> {
@@ -292,7 +294,7 @@ export function createMockApi(): Api {
     async getMe() { const m = me(); return m ? clone(m) : null; },
     async listMembers() { return clone(load().members); },
     async addMember({ name, gender }) {
-      load().members.push({ id: nid("m"), name, gender, role: "member", isLeader: false, status: "unclaimed", userId: null, badgeId: null });
+      load().members.push({ id: nid("m"), name, gender, role: "member", isLeader: false, status: "unclaimed", userId: null, badgeId: null, approvedAt: null });
       save();
     },
     async updateMember(id, patch) {
@@ -313,7 +315,7 @@ export function createMockApi(): Api {
     async reviewJoin(memberId, approve) {
       const m = load().members.find((x) => x.id === memberId);
       if (!m) return;
-      if (approve) m.status = "active"; else { delete load().secrets![m.id]; m.status = "unclaimed"; m.userId = null; }
+      if (approve) { m.status = "active"; m.approvedAt = new Date().toISOString(); } else { delete load().secrets![m.id]; m.status = "unclaimed"; m.userId = null; }
       save();
     },
 
@@ -343,8 +345,8 @@ export function createMockApi(): Api {
       m.badgeId = id; save();
     },
 
-    async getSettings() { const s = clone(load().settings); return { ...s, instagram: s.instagram ?? "" }; },
-    async updateSettings(s) { load().settings = { ...s }; save(); },
+    async getSettings() { const s = clone(load().settings); return { ...s, instagram: s.instagram ?? "", newbieStart: s.newbieStart ?? NEWBIE_START }; },
+    async updateSettings(s) { load().settings = { ...load().settings, ...s }; save(); },
 
     async listEvents(from, to) {
       return clone(load().events.filter((e) => e.date >= from && e.date <= to).sort((a, b) => a.date.localeCompare(b.date)));

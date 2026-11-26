@@ -22,7 +22,7 @@ export default function SettingsPage() {
 
   const save = async () => {
     setBusy(true); setErr(null); setMsg(null);
-    try { await api.updateSettings({ minAttendance: a, distanceTarget: t, instagram: handle }); await reload(); setMsg("저장했어요"); }
+    try { await api.updateSettings({ ...settings, minAttendance: a, distanceTarget: t, instagram: handle }); await reload(); setMsg("저장했어요"); }
     catch (e) { setErr(e instanceof Error ? e.message : String(e)); }
     finally { setBusy(false); }
   };

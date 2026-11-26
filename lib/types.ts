@@ -11,6 +11,7 @@ export interface Member {
   status: MemberStatus;
   userId: string | null;
   badgeId: string | null; // 대표 아이콘(없으면 null)
+  approvedAt: string | null; // 가입 승인 시각(신입 판단용)
 }
 
 /** 획득한 아이콘. 이름·설명은 얻은 뒤에만 서버에서 받음 */
@@ -101,6 +102,17 @@ export interface Settings {
   minAttendance: number; // 월 최소 참석 횟수
   distanceTarget: number; // 월 거리 인증 목표(km)
   instagram: string; // 크루 인스타그램 계정(@ 없이), 비어 있으면 미등록
+  newbieStart: string; // 이 날짜(YYYY-MM-DD) 이후 승인된 회원부터 신입 규칙 적용
+}
+
+/** 한국 시간 기준 날짜(YYYY-MM-DD) */
+const kstDate = (iso: string) => new Date(new Date(iso).getTime() + 9 * 3600000).toISOString().slice(0, 10);
+
+/** 신입: 가입이 승인된 그 달(month = YYYY-MM)에는 참석·거리 기준 판단에서 뺌 */
+export function isNewbie(m: Pick<Member, "approvedAt">, month: string, s: Pick<Settings, "newbieStart">): boolean {
+  if (!m.approvedAt) return false;
+  const d = kstDate(m.approvedAt);
+  return d >= s.newbieStart && d.slice(0, 7) === month;
 }
 
 export interface Session {

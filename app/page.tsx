@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useCrew, useLoad } from "@/components/crew";
 import { BrandHeader, ErrorText, Loading, Screen, Tabs } from "@/components/shell";
 import { distanceDeadline, shortDayLabel, hms, km, monthStr, parseMonth } from "@/lib/format";
-import { countsAsAttendance } from "@/lib/types";
+import { countsAsAttendance, isNewbie } from "@/lib/types";
 import { AdminDashboard } from "@/components/admin-dashboard";
 
 export default function HomePage() {
@@ -51,7 +51,7 @@ export default function HomePage() {
 
         // 마감 3일 전부터, 해당 월을 아직 제출하지 않았으면(반려만 있으면 미제출로 봄) 붉은 안내
         const due = distanceDeadline();
-        const dueMissing = due && !data.dist.some((d) => d.month === due.month && d.status !== "rejected");
+        const dueMissing = due && !isNewbie(me, due.month, settings) && !data.dist.some((d) => d.month === due.month && d.status !== "rejected");
 
         return (
           <>

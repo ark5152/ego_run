@@ -6,7 +6,7 @@ import { useCrew, useLoad } from "@/components/crew";
 import { ErrorText, Loading, MonthNav, Screen, Tabs } from "@/components/shell";
 import { Icon } from "@/components/icons";
 import { dateStr, dayLabel, monthLabel, monthRange, monthStr, parseMonth, shiftMonth, sortKo, todayStr, WEEKDAYS } from "@/lib/format";
-import { countsAsAttendance, isStaff, kindLabel } from "@/lib/types";
+import { countsAsAttendance, isNewbie, isStaff, kindLabel } from "@/lib/types";
 
 type Sort = "name" | "most" | "least";
 
@@ -44,8 +44,9 @@ export default function AttendancePage() {
         const runAtt = data.att.filter(countsAsAttendance);
         const countOf = (id: string) => runAtt.filter((a) => a.memberId === id).length;
         const kmOf = (id: string) => data.dist.filter((d) => d.memberId === id).reduce((s, d) => s + d.km, 0);
+        const newbie = (m: { approvedAt: string | null }) => isNewbie(m, month, settings); // 이 달 신입은 판단 제외
         const certified = data.members.filter((m) => kmOf(m.id) >= settings.distanceTarget).length;
-        const short = data.members.filter((m) => countOf(m.id) < settings.minAttendance).length;
+        const short = data.members.filter((m) => !newbie(m) && countOf(m.id) < settings.minAttendance).length;
 
         if (tab === "date") {
           const { y, m } = parseMonth(month);
@@ -135,15 +136,15 @@ export default function AttendancePage() {
                 const n = countOf(m.id);
                 return (
                   <div className="mr" key={m.id}>
-                    <span>{m.name}{isStaff(m) && <span className="tg">운영진</span>}</span>
-                    <span>{n < settings.minAttendance && <span className="bg">참석 부족</span>}</span>
+                    <span>{m.name}{isStaff(m) && <span className="tg">운영진</span>}{newbie(m) && <span className="tg">신입</span>}</span>
+                    <span>{!newbie(m) && n < settings.minAttendance && <span className="bg">참석 부족</span>}</span>
                     <b>{n}회</b>
                   </div>
                 );
               })}
             </section>
             <p className="sm" style={{ margin: 0 }}>
-              출석 횟수는 ‘러닝’ 일정만 세요 · 최소 참석 {settings.minAttendance}회 · 거리 인증은 이번 달 인정 거리 {settings.distanceTarget}km 이상
+              출석 횟수는 ‘러닝’ 일정만 세요 · 최소 참석 {settings.minAttendance}회 · 거리 인증은 이번 달 인정 거리 {settings.distanceTarget}km 이상 · 신입은 가입한 달 판단 제외
             </p>
           </>
         );

@@ -7,7 +7,7 @@ import type {
 
 const toMember = (r: any): Member => ({
   id: r.id, name: r.name, gender: r.gender, role: r.role, isLeader: r.is_leader, status: r.status, userId: r.user_id,
-  badgeId: r.badge_id ?? null,
+  badgeId: r.badge_id ?? null, approvedAt: r.approved_at ?? null,
 });
 const toEvent = (r: any): CrewEvent => ({ id: r.id, date: r.date, title: r.title, kind: r.kind });
 const toDistance = (r: any): DistanceSubmission => ({
@@ -126,7 +126,7 @@ export function createSupabaseApi(url: string, key: string): Api {
 
     async getSettings(): Promise<Settings> {
       const r: any = check(await sb.from("settings").select("*").eq("id", 1).single());
-      return { minAttendance: r.min_attendance, distanceTarget: Number(r.distance_target), instagram: r.instagram ?? "" };
+      return { minAttendance: r.min_attendance, distanceTarget: Number(r.distance_target), instagram: r.instagram ?? "", newbieStart: r.newbie_start ?? "2026-12-01" };
     },
     async updateSettings(s) {
       check(await sb.from("settings").update({ min_attendance: s.minAttendance, distance_target: s.distanceTarget, instagram: s.instagram }).eq("id", 1));

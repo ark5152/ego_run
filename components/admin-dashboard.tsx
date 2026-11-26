@@ -6,7 +6,7 @@ import { useCrew, useLoad } from "./crew";
 import { Icon, type IconName } from "./icons";
 import { ErrorText } from "./shell";
 import { monthRange, monthStr, parseMonth, shiftMonth, shortDayLabel, sortKo, dateStr, todayStr } from "@/lib/format";
-import { countsAsAttendance, type Member } from "@/lib/types";
+import { countsAsAttendance, isNewbie, type Member } from "@/lib/types";
 
 type Panel = "att" | "dist" | null;
 
@@ -35,9 +35,12 @@ export function AdminDashboard() {
   const dLabel = daysLeft > 0 ? `마감 D-${daysLeft}` : daysLeft === 0 ? "오늘 마감" : "마감 지남";
 
   let body = null;
-  let summary = { short: [] as { m: Member; n: number }[], uncert: [] as { m: Member; why: string }[], joins: 0, reviews: 0, below: 0 };
+  let summary = { short: [] as { m: Member; n: number }[], uncert: [] as { m: Member; why: string }[], joins: 0, reviews: 0, below: 0, newbies: [] as Member[] };
   if (data) {
-    const active = sortKo(data.members.filter((x) => x.status === "active"), (x) => x.name);
+    const all = sortKo(data.members.filter((x) => x.status === "active"), (x) => x.name);
+    // 신입(이 달에 가입 승인)은 참석·거리 판단에서 뺌
+    const newbies = all.filter((x) => isNewbie(x, month, settings));
+    const active = all.filter((x) => !isNewbie(x, month, settings));
     const runAtt = data.att.filter(countsAsAttendance); // 출석은 '러닝'만
     const countOf = (id: string) => runAtt.filter((a) => a.memberId === id).length;
     const short = active.map((x) => ({ m: x, n: countOf(x.id) })).filter((r) => r.n < settings.minAttendance);
@@ -55,6 +58,7 @@ export function AdminDashboard() {
       joins: data.members.filter((x) => x.status === "pending").length,
       reviews: data.pendingDist.length,
       below: belowIds.size,
+      newbies,
     };
   }
 
@@ -116,7 +120,7 @@ export function AdminDashboard() {
         <button type="button" className="dash-copy" onClick={copyText}>
           <Icon name="copy" small /> {copied ? "복사했어요! 카톡에 붙여넣으세요" : "미달 독려문 복사 (카톡용)"}
         </button>
-        <div className="dash-foot">기준 미달 {summary.below}명 · 월 참석 {settings.minAttendance}회 · 거리 {settings.distanceTarget}km</div>
+        <div className="dash-foot">기준 미달 {summary.below}명{summary.newbies.length > 0 && ` · 신입 ${summary.newbies.length}명 제외`} · 월 참석 {settings.minAttendance}회 · 거리 {settings.distanceTarget}km</div>
       </>
     );
   }
